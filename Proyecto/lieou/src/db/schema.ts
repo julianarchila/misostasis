@@ -1,4 +1,10 @@
-import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+
+export const todo = pgTable("todo", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  title: text("title").notNull(),
+  completed: boolean("completed").notNull().default(false),
+})
 
 export const user = pgTable("user", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
