@@ -1,85 +1,95 @@
-import { revalidatePath } from "next/cache";
-import { getDb } from "@/db";
-import { todo as todoTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+"use client";
 
-async function addTodo(formData: FormData) {
-  "use server";
-  const db = getDb();
-  const rawTitle = formData.get("title");
-  const title = typeof rawTitle === "string" ? rawTitle.trim() : "";
-  if (!title) return;
-  await db.insert(todoTable).values({ title });
-  revalidatePath("/");
-}
+import * as React from "react";
+import Image from "next/image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { SwipeDeck } from "@/components/person/SwipeDeck";
+import { mockPlaces, type Place } from "@/lib/mockPlaces";
 
-async function toggleTodo(formData: FormData) {
-  "use server";
-  const db = getDb(); 
-  const id = Number(formData.get("id"));
-  const nextCompleted = String(formData.get("completed")) === "true";
-  if (!Number.isFinite(id)) return;
-  await db.update(todoTable).set({ completed: nextCompleted }).where(eq(todoTable.id, id));
-  revalidatePath("/");
-}
+export default function PersonPage() {
+  const [saved, setSaved] = React.useState<Place[]>([]);
 
-async function deleteTodo(formData: FormData) {
-  "use server";
-  const db = getDb(); 
-  const id = Number(formData.get("id"));
-  if (!Number.isFinite(id)) return;
-  await db.delete(todoTable).where(eq(todoTable.id, id));
-  revalidatePath("/");
-}
+  const handleSave = (place: Place) => {
+    setSaved((prev) => (prev.find((p) => p.id === place.id) ? prev : [...prev, place]));
+  };
 
-export default async function Home() {
-  const db = getDb(); 
-  const todos = await db.select().from(todoTable).orderBy(todoTable.id);
+  const handleDiscard = () => {
+    // no-op for mock; could track discards if desired
+  };
 
   return (
-    <div className="min-h-screen p-8 font-sans">
-      <div className="mx-auto max-w-md space-y-6">
-        <h1 className="text-2xl font-semibold">Todos</h1>
-
-        <form action={addTodo} className="flex gap-2">
-          <input
-            type="text"
-            name="title"
-            placeholder="Add a todo..."
-            className="w-full rounded border px-3 py-2"
-          />
-          <button type="submit" className="rounded bg-black px-4 py-2 text-white dark:bg-white dark:text-black">
-            Add
-          </button>
-        </form>
-
-        <ul className="space-y-2">
-          {todos.length === 0 ? (
-            <li className="text-sm text-gray-500">No todos yet.</li>
-          ) : (
-            todos.map((t) => (
-              <li key={t.id} className="flex items-center justify-between rounded border p-2">
-                <div className={t.completed ? "line-through text-gray-500" : ""}>{t.title}</div>
-                <div className="flex items-center gap-2">
-                  <form action={toggleTodo}>
-                    <input type="hidden" name="id" value={String(t.id)} />
-                    <input type="hidden" name="completed" value={String(!t.completed)} />
-                    <button type="submit" className="rounded border px-2 py-1 text-sm">
-                      {t.completed ? "Undo" : "Done"}
-                    </button>
-                  </form>
-                  <form action={deleteTodo}>
-                    <input type="hidden" name="id" value={String(t.id)} />
-                    <button type="submit" className="rounded border px-2 py-1 text-sm text-red-600">
-                      Delete
-                    </button>
-                  </form>
-                </div>
-              </li>
-            ))
-          )}
-        </ul>
+    <main className="min-h-[100svh] bg-white">
+      <div className="mx-auto w-full max-w-md px-4 pb-6">
+        <div className="sticky top-0 z-10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+          <div className="h-14 flex items-center justify-between">
+            <div className="text-lg font-semibold">Discover</div>
+            <div className="flex items-center gap-2">
+              <SignedOut>
+                <SignInButton mode="modal" signInUrl="/sign-in">
+                  <Button variant="outline" className="h-9 px-3 text-sm">Sign In</Button>
+                </SignInButton>
+                <SignUpButton mode="modal" signUpUrl="/sign-up">
+                  <Button className="h-9 px-3 text-sm rounded-full bg-[#6c47ff] text-white">Sign Up</Button>
+                </SignUpButton>
+              </SignedOut>
+              <SignedIn>
+                <UserButton />
+              </SignedIn>
+            </div>
+          </div>
+          <Tabs defaultValue="discover" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="discover">Discover</TabsTrigger>
+              <TabsTrigger value="saved">Saved</TabsTrigger>
+            </TabsList>
+            <TabsContent value="discover" className="pt-4">
+              <SwipeDeck places={mockPlaces} onSave={handleSave} onDiscard={handleDiscard} />
+            </TabsContent>
+            <TabsContent value="saved" className="pt-4">
+              <SavedList items={saved} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
+    </main>
+  );
+}
+
+function SavedList({ items }: { items: Place[] }) {
+  if (items.length === 0) {
+    return (
+      <div className="py-16 text-center">
+        <div className="text-base font-medium">No saved places yet</div>
+        <div className="text-sm text-neutral-500 mt-1">Swipe right on places to add them here.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {items.map((p) => (
+        <Card key={p.id} className="overflow-hidden">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
+                <Image src={p.photoUrl} alt={p.name} fill className="object-cover" sizes="64px" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="truncate font-medium">{p.name}</div>
+                  <Badge variant="secondary" className="bg-neutral-100 text-neutral-700">{p.category}</Badge>
+                </div>
+                <div className="text-xs text-neutral-500 truncate">{p.description}</div>
+              </div>
+              <Button variant="outline" className="ml-auto">View on map</Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
