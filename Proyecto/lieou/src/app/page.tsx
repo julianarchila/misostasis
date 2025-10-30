@@ -1,81 +1,71 @@
-import { revalidatePath } from "next/cache";
-import { db } from "@/db";
-import { todo as todoTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+"use client";
 
-async function addTodo(formData: FormData) {
-  "use server";
-  const rawTitle = formData.get("title");
-  const title = typeof rawTitle === "string" ? rawTitle.trim() : "";
-  if (!title) return;
-  await db.insert(todoTable).values({ title });
-  revalidatePath("/");
-}
+import * as React from "react";
+import { useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { SwipeDeck } from "@/components/person/SwipeDeck";
+import { mockPlaces, type Place } from "@/lib/mockPlaces";
 
-async function toggleTodo(formData: FormData) {
-  "use server";
-  const id = Number(formData.get("id"));
-  const nextCompleted = String(formData.get("completed")) === "true";
-  if (!Number.isFinite(id)) return;
-  await db.update(todoTable).set({ completed: nextCompleted }).where(eq(todoTable.id, id));
-  revalidatePath("/");
-}
+export default function PersonPage() {
+  const [saved, setSaved] = React.useState<Place[]>([]);
+  const search = useSearchParams();
+  const view = (search.get("view") ?? "discover") as "discover" | "saved";
 
-async function deleteTodo(formData: FormData) {
-  "use server";
-  const id = Number(formData.get("id"));
-  if (!Number.isFinite(id)) return;
-  await db.delete(todoTable).where(eq(todoTable.id, id));
-  revalidatePath("/");
-}
+  const handleSave = (place: Place) => {
+    setSaved((prev) => (prev.find((p) => p.id === place.id) ? prev : [...prev, place]));
+  };
 
-export default async function Home() {
-  const todos = await db.select().from(todoTable).orderBy(todoTable.id);
+  const handleDiscard = () => {
+    // no-op for mock; could track discards if desired
+  };
 
   return (
-    <div className="min-h-screen p-8 font-sans">
-      <div className="mx-auto max-w-md space-y-6">
-        <h1 className="text-2xl font-semibold">Todos</h1>
-
-        <form action={addTodo} className="flex gap-2">
-          <input
-            type="text"
-            name="title"
-            placeholder="Add a todo..."
-            className="w-full rounded border px-3 py-2"
-          />
-          <button type="submit" className="rounded bg-black px-4 py-2 text-white dark:bg-white dark:text-black">
-            Add
-          </button>
-        </form>
-
-        <ul className="space-y-2">
-          {todos.length === 0 ? (
-            <li className="text-sm text-gray-500">No todos yet.</li>
-          ) : (
-            todos.map((t) => (
-              <li key={t.id} className="flex items-center justify-between rounded border p-2">
-                <div className={t.completed ? "line-through text-gray-500" : ""}>{t.title}</div>
-                <div className="flex items-center gap-2">
-                  <form action={toggleTodo}>
-                    <input type="hidden" name="id" value={String(t.id)} />
-                    <input type="hidden" name="completed" value={String(!t.completed)} />
-                    <button type="submit" className="rounded border px-2 py-1 text-sm">
-                      {t.completed ? "Undo" : "Done"}
-                    </button>
-                  </form>
-                  <form action={deleteTodo}>
-                    <input type="hidden" name="id" value={String(t.id)} />
-                    <button type="submit" className="rounded border px-2 py-1 text-sm text-red-600">
-                      Delete
-                    </button>
-                  </form>
-                </div>
-              </li>
-            ))
-          )}
-        </ul>
+    <main className="min-h-[100svh] bg-white">
+      <div className="mx-auto w-full max-w-md px-4 py-4">
+        {view === "discover" ? (
+          <SwipeDeck places={mockPlaces} onSave={handleSave} onDiscard={handleDiscard} />
+        ) : (
+          <SavedList items={saved} />
+        )}
       </div>
+    </main>
+  );
+}
+
+function SavedList({ items }: { items: Place[] }) {
+  if (items.length === 0) {
+    return (
+      <div className="py-16 text-center">
+        <div className="text-base font-medium">No saved places yet</div>
+        <div className="text-sm text-neutral-500 mt-1">Swipe right on places to add them here.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {items.map((p) => (
+        <Card key={p.id} className="overflow-hidden">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
+                <Image src={p.photoUrl} alt={p.name} fill className="object-cover" sizes="64px" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="truncate font-medium">{p.name}</div>
+                  <Badge variant="secondary" className="bg-neutral-100 text-neutral-700">{p.category}</Badge>
+                </div>
+                <div className="text-xs text-neutral-500 truncate">{p.description}</div>
+              </div>
+              <Button variant="outline" className="ml-auto">View on map</Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
