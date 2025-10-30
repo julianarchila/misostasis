@@ -1,16 +1,7 @@
 import { type Metadata } from 'next'
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs'
-import { Button } from '@/components/ui/button'
+import { ClerkProvider } from '@clerk/nextjs'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
-import { SidebarNav } from '@/components/layout/SidebarNav'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -36,12 +27,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <div className="md:grid md:grid-cols-[240px_1fr]">
-            <div className="sticky top-0 z-20 md:h-[100svh]">
-              <SidebarNav />
-            </div>
-            <div className="min-h-[100svh]">{children}</div>
-          </div>
+          {children}
         </body>
       </html>
     </ClerkProvider>
