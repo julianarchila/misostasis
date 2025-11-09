@@ -1,13 +1,9 @@
+
 // request.ts
 import { Rpc, RpcGroup } from "@effect/rpc"
 import { Schema } from "effect"
-import { AuthMiddleware } from "./rpc-middleware"
-
-// Define a user with an ID and name
-export class User extends Schema.Class<User>("User")({
-  id: Schema.String, // User's ID as a string
-  name: Schema.String // User's name as a string
-}) {}
+import { AuthMiddleware } from "./middleware"
+import { User } from "@/server/schemas/user"
 
 // Define a group of RPCs for user management.
 // You can use the `RpcGroup.make` function to create a group of RPCs.
@@ -29,4 +25,4 @@ export class UserRpcs extends RpcGroup.make(
       name: Schema.String
     }
   })
-).middleware(AuthMiddleware) {}
+).middleware(AuthMiddleware) { }
