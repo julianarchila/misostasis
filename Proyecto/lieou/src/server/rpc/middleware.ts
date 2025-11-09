@@ -1,7 +1,7 @@
 // middleware.ts
 import { RpcMiddleware } from "@effect/rpc"
 import { Context } from "effect"
-import type { User } from "@/requests"
+import { User } from "@/server/schemas/user"
 
 // A context tag which represents the current user
 export class CurrentUser extends Context.Tag("CurrentUser")<
