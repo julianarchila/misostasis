@@ -2,7 +2,7 @@
 import { createEffectQuery } from "effect-query";
 import { Effect, Layer } from "effect";
 import { RpcClient, RpcSerialization } from "@effect/rpc";
-import { UserRpcs, User } from "@/requests"
+import { UserRpcs } from "@/requests"
 import { FetchHttpClient } from "@effect/platform";
 
 
