@@ -29,10 +29,10 @@ export default function PersonPage() {
             <div className="text-lg font-semibold">Discover</div>
             <div className="flex items-center gap-2">
               <SignedOut>
-                <SignInButton mode="modal" signInUrl="/sign-in">
+                <SignInButton mode="modal" >
                   <Button variant="outline" className="h-9 px-3 text-sm">Sign In</Button>
                 </SignInButton>
-                <SignUpButton mode="modal" signUpUrl="/sign-up">
+                <SignUpButton mode="modal" >
                   <Button className="h-9 px-3 text-sm rounded-full bg-[#6c47ff] text-white">Sign Up</Button>
                 </SignUpButton>
               </SignedOut>
