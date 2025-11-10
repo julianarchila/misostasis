@@ -65,10 +65,12 @@ export function OnboardingForm() {
       })
     },
     onSuccess: async () => {
-      // Reloads the user's data from the Clerk API
+      // Reload user to ensure publicMetadata is fresh
       await user?.reload()
-      router.push('/')
-
+      const role =
+        selectedUserType ??
+        ((user?.publicMetadata as any)?.role as "explorer" | "business" | undefined)
+      router.replace(role === "business" ? "/business" : "/explorer")
     }
   })
 

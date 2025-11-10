@@ -20,17 +20,17 @@ export const authRequired = Effect.gen(function* () {
   })
 })
 
-export const setOnboarded = (userId: string) => Effect.gen(function* () {
-  const client = yield* Effect.promise(clerkClient)
-
-  const res = yield* Effect.tryPromise({
-    try: () => client.users.updateUser(userId, {
-      publicMetadata: { onboardingComplete: true }
-    }),
-    catch: () => new ClerkError("There was an error updating the user metadata.")
+export const setPublicMetadata = (userId: string, metadata: Record<string, unknown>) =>
+  Effect.gen(function* () {
+    const client = yield* Effect.promise(clerkClient)
+    yield* Effect.tryPromise({
+      try: () =>
+        client.users.updateUser(userId, {
+          publicMetadata: metadata
+        }),
+      catch: () => new ClerkError("There was an error updating the user metadata.")
+    })
   })
-
-})
 
 
 export const getClerkUserById = (userId: string) => Effect.gen(function* () {
@@ -83,7 +83,10 @@ export class UserService extends Effect.Service<UserService>()(
           }).pipe(Effect.orDie)
 
 
-          yield* setOnboarded(currentUser.user.id).pipe(Effect.orDie)
+          yield* setPublicMetadata(currentUser.user.id, {
+            onboardingComplete: true,
+            role: payload.userType
+          }).pipe(Effect.orDie)
         })
       }
 
