@@ -26,6 +26,7 @@ export const DBTest = Layer.effect(
     yield* Effect.logInfo("Completed migrations")
 
     return new DB({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client: client as any,
       DBQuery: makeQueryHelper(client),
     })

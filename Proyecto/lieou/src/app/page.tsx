@@ -9,7 +9,7 @@ import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } 
 
 export default function LandingPage() {
   const { user } = useUser()
-  const role = (user?.publicMetadata as any)?.role as "explorer" | "business" | undefined
+  const role = (user?.publicMetadata as Record<string, unknown>)?.role as "explorer" | "business" | undefined
   const dashboardHref = role === "business" ? "/business" : "/explorer"
 
   return (

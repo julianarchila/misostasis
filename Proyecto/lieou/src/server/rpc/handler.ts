@@ -2,7 +2,7 @@
 
 
 
-import { Effect, Layer, Option } from "effect"
+import { Effect, Layer } from "effect"
 import { auth } from '@clerk/nextjs/server'
 
 
@@ -25,8 +25,6 @@ export const UsersLive = UserRpcs.toLayer(
     const userService = yield* UserService
 
     return {
-      UserList: () => userService.list(),
-      UserById: ({ id }) => userService.byId(id),
       OnboardUser: (payload) => userService.onboard(payload)
     }
   })

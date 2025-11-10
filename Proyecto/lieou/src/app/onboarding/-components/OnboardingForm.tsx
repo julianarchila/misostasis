@@ -69,7 +69,7 @@ export function OnboardingForm() {
       await user?.reload()
       const role =
         selectedUserType ??
-        ((user?.publicMetadata as any)?.role as "explorer" | "business" | undefined)
+        ((user?.publicMetadata as Record<string, unknown>)?.role as "explorer" | "business" | undefined)
       router.replace(role === "business" ? "/business" : "/explorer")
     }
   })
