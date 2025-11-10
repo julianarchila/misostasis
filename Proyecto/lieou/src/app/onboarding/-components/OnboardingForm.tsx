@@ -28,6 +28,8 @@ import { FormActions } from "./FormActions"
 import { useMutation } from "@tanstack/react-query"
 import { onboardUserOptions } from "@/data-acess/users"
 
+import { toast } from "sonner"
+
 const formSchema = z
   .object({
     userType: z.enum(["explorer", "business"]),
@@ -65,7 +67,20 @@ export function OnboardingForm() {
     "explorer" | "business" | null
   >(null)
 
-  const { mutateAsync: onBoardUser } = useMutation(onboardUserOptions)
+  const { mutate: onBoardUser } = useMutation({
+    ...onboardUserOptions,
+    throwOnError: false,
+    onError: (error) => {
+      error.match({
+        Unauthenticated: () => {
+          toast.error("You must be logged in to complete onboarding.")
+        },
+        OrElse: () => {
+          toast.error("An unexpected error occurred. Please try again.")
+        }
+      })
+    }
+  })
 
   const form = useForm({
     defaultValues: {
@@ -79,12 +94,7 @@ export function OnboardingForm() {
     },
     onSubmit: async ({ value }) => {
       console.log("Form submitted:", value)
-      // TODO: Connect to backend
-      await onBoardUser(value, {
-        onError: (error) => {
-          console.log("Onboarding error:", error)
-        }
-      })
+      onBoardUser(value)
     },
   })
 
@@ -108,7 +118,8 @@ export function OnboardingForm() {
             {/* User Type Selection */}
             <form.Field
               name="userType"
-              children={(field) => {
+            >
+              {(field) => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid
                 return (
@@ -189,14 +200,15 @@ export function OnboardingForm() {
                   </FieldSet>
                 )
               }}
-            />
+            </form.Field>
 
             {/* Basic Information */}
             {selectedUserType && (
               <>
                 <form.Field
                   name="fullName"
-                  children={(field) => {
+                >
+                  {(field) => {
                     const isInvalid =
                       field.state.meta.isTouched && !field.state.meta.isValid
                     return (
@@ -221,11 +233,12 @@ export function OnboardingForm() {
                       </Field>
                     )
                   }}
-                />
+                </form.Field>
 
                 <form.Field
                   name="location"
-                  children={(field) => {
+                >
+                  {(field) => {
                     const isInvalid =
                       field.state.meta.isTouched && !field.state.meta.isValid
                     return (
@@ -252,7 +265,7 @@ export function OnboardingForm() {
                       </Field>
                     )
                   }}
-                />
+                </form.Field>
               </>
             )}
 
@@ -260,14 +273,13 @@ export function OnboardingForm() {
             {selectedUserType === "business" && (
               <form.Field
                 name="businessName"
-                children={(field) => {
+              >
+                {(field) => {
                   const isInvalid =
                     field.state.meta.isTouched && !field.state.meta.isValid
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor="businessName">
-                        Business name
-                      </FieldLabel>
+                      <FieldLabel htmlFor="businessName">Business name</FieldLabel>
                       <Input
                         id="businessName"
                         name={field.name}
@@ -275,7 +287,7 @@ export function OnboardingForm() {
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         aria-invalid={isInvalid}
-                        placeholder="Your awesome business"
+                        placeholder="Your Business Name"
                         autoComplete="organization"
                       />
                       <FieldDescription>
@@ -287,7 +299,7 @@ export function OnboardingForm() {
                     </Field>
                   )
                 }}
-              />
+              </form.Field>
             )}
           </FieldGroup>
 

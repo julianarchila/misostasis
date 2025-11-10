@@ -1,7 +1,6 @@
 // middleware.ts
 import { RpcMiddleware } from "@effect/rpc"
 import { Context } from "effect"
-import { User } from "@/server/schemas/user"
 import type { Session } from "@/server/schemas/auth";
 
 // A context tag which represents the current user

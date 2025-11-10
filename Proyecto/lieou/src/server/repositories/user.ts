@@ -1,10 +1,7 @@
 
 // handlers.ts
-import { Effect, Layer, Ref } from "effect"
-import { AuthMiddleware, CurrentUser } from "@/server/rpc/middleware"
+import { Effect, Ref } from "effect"
 import { User } from "@/server/schemas/user"
-
-import { auth } from '@clerk/nextjs/server'
 
 export class UserRepository extends Effect.Service<UserRepository>()(
   "UserRepository",

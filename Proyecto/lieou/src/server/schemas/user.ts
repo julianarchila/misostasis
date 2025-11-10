@@ -1,5 +1,4 @@
 // request.ts
-import { Rpc, RpcGroup } from "@effect/rpc"
 import { Schema } from "effect"
 
 // Define a user with an ID and name

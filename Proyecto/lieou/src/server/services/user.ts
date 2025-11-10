@@ -1,11 +1,8 @@
 
 
 // handlers.ts
-import { Effect, Layer, Ref, Option } from "effect"
-import { AuthMiddleware, CurrentUser } from "@/server/rpc/middleware"
-import { User } from "@/server/schemas/user"
-
-import { auth } from '@clerk/nextjs/server'
+import { Effect, Option } from "effect"
+import { CurrentUser } from "@/server/rpc/middleware"
 import { UserRepository } from "@/server/repositories/user"
 import { type OnboardUserPayload } from "@/server/schemas/user"
 import { Unauthenticated } from "@/server/schemas/error"

@@ -53,7 +53,7 @@ export function SwipeDeck({ places, onSave, onDiscard }: SwipeDeckProps) {
   if (!active) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-        <div className="text-xl font-medium">You're all caught up</div>
+        <div className="text-xl font-medium">You&apos;re all caught up</div>
         <div className="text-sm text-neutral-500">Check back later for more places.</div>
       </div>
     );

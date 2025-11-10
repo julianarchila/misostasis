@@ -5,7 +5,7 @@ const isOnboardingRoute = createRouteMatcher(["/onboarding"])
 const isApiROute = createRouteMatcher(["/api/(.*)", "/rpc(.*)", "/trpc(.*)"])
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
-  const { isAuthenticated, sessionClaims, redirectToSignIn } = await auth()
+  const { isAuthenticated, sessionClaims } = await auth()
 
   if (isApiROute(req)) return NextResponse.next()
 
