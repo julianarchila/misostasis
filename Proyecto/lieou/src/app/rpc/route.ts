@@ -4,6 +4,7 @@ import { RpcSerialization, RpcServer } from "@effect/rpc"
 import { Layer } from "effect"
 import { AuthLive, UsersLive } from "@/server/rpc/handler"
 import { UserRpcs } from "@/server/rpc/request"
+import { NextRequest } from "next/server"
 
 // Create a web handler for Next.js using Effect RPC
 const { handler } = RpcServer.toWebHandler(UserRpcs, {
@@ -15,4 +16,9 @@ const { handler } = RpcServer.toWebHandler(UserRpcs, {
   )
 })
 
-export const POST = handler
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{}> }
+) {
+  return handler(request)
+}
