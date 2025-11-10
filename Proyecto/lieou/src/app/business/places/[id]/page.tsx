@@ -14,90 +14,42 @@ export default function BusinessPlaceDetailPage({ params }: { params: Promise<{ 
   const place = mockPlaces.find((p) => p.id === id);
 
   if (!place) {
-    return (
-      <main className="min-h-[100svh] bg-white">
-        <div className="mx-auto w-full max-w-3xl px-4 pb-6">
-          <div className="sticky top-0 z-10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-            <div className="h-14 flex items-center justify-between">
-              <div className="text-lg font-semibold">Place not found</div>
-              <div className="flex items-center gap-2">
-                <SignedOut>
-                  <SignInButton mode="modal" >
-                    <Button variant="outline" className="h-9 px-3 text-sm">Sign In</Button>
-                  </SignInButton>
-                  <SignUpButton mode="modal" >
-                    <Button className="h-9 px-3 text-sm rounded-full bg-[#6c47ff] text-white">Sign Up</Button>
-                  </SignUpButton>
-                </SignedOut>
-                <SignedIn>
-                  <UserButton />
-                </SignedIn>
-              </div>
-            </div>
-            <div className="pt-3">
-              <BusinessNav />
-            </div>
-          </div>
-          <div className="text-sm text-neutral-600">This is a mock page. Try another place.</div>
-        </div>
-      </main>
-    );
+    return <div className="text-sm text-neutral-600">This is a mock page. Try another place.</div>;
   }
 
   return (
-    <main className="min-h-[100svh] bg-white">
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="px-4 pb-3 sticky top-0 z-10 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-          <div className="h-14 flex items-center justify-between">
-            <div className="text-lg font-semibold">{place.name}</div>
-            <div className="flex items-center gap-2">
-              <SignedOut>
-                <SignInButton mode="modal" >
-                  <Button variant="outline" className="h-9 px-3 text-sm">Sign In</Button>
-                </SignInButton>
-                <SignUpButton mode="modal" >
-                  <Button className="h-9 px-3 text-sm rounded-full bg-[#6c47ff] text-white">Sign Up</Button>
-                </SignUpButton>
-              </SignedOut>
-              <SignedIn>
-                <UserButton />
-              </SignedIn>
-            </div>
-          </div>
-          <BusinessNav />
-        </div>
-        <div className="relative h-[42svh] w-full bg-neutral-100">
-          <Image
-            src={place.photoUrl}
-            alt={place.name}
-            fill
-            sizes="(max-width: 768px) 100vw, 1024px"
-            className="object-cover"
-            priority
-          />
-        </div>
+    <div className="mx-auto w-full">
+      <div className="relative h-[42svh] w-full bg-neutral-100">
+        <Image
+          src={place.photoUrl}
+          alt={place.name}
+          fill
+          sizes="(max-width: 768px) 100vw, 1024px"
+          className="object-cover"
+          priority
+        />
+      </div>
 
-        <div className="px-4 py-4">
-          <div className="mb-2 flex items-center gap-2">
-            <Badge variant="secondary" className="bg-neutral-100 text-neutral-700">
-              {place.category}
-            </Badge>
-          </div>
-          <h1 className="text-xl font-semibold">{place.name}</h1>
-          <p className="mt-2 text-sm text-neutral-600">{place.description}</p>
+      <div className="py-4">
+        <div className="mb-2 flex items-center gap-2">
+          <Badge variant="secondary" className="bg-neutral-100 text-neutral-700">
+            {place.category}
+          </Badge>
+        </div>
+        <h1 className="text-xl font-semibold">{place.name}</h1>
+        <p className="mt-2 text-sm text-neutral-600">{place.description}</p>
 
-          <div className="mt-6 flex items-center gap-2">
-            <Button variant="outline" disabled>
-              Edit (coming soon)
-            </Button>
-            <Button variant="destructive" disabled>
-              Unpublish
-            </Button>
-            <div className="ml-auto" />
-          </div>
+        <div className="mt-6 flex items-center gap-2">
+          <Button variant="outline" disabled>
+            Edit (coming soon)
+          </Button>
+          <Button variant="destructive" disabled>
+            Unpublish
+          </Button>
+          <div className="ml-auto" />
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 

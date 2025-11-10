@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
+import { ExplorerHeader } from './-components/ExplorerHeader'
 
 export default async function ExplorerLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -12,7 +13,16 @@ export default async function ExplorerLayout({ children }: { children: React.Rea
   if (session.sessionClaims?.metadata.role !== 'explorer') {
     redirect('/business')
   }
-  return <>{children}</>
+  return (
+    <main className="min-h-[100svh] bg-white">
+      <div className="mx-auto w-full max-w-md px-4 pb-6">
+        <ExplorerHeader />
+        <div className="pt-4">
+          {children}
+        </div>
+      </div>
+    </main>
+  )
 }
 
 

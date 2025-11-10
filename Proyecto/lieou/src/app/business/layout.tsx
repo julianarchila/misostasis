@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
+import { BusinessHeader } from './-components/BusinessHeader'
 
 export default async function BusinessLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -12,7 +13,16 @@ export default async function BusinessLayout({ children }: { children: React.Rea
   if (session.sessionClaims?.metadata.role !== 'business') {
     redirect('/explorer')
   }
-  return <>{children}</>
+  return (
+    <main className="min-h-[100svh] bg-white">
+      <div className="mx-auto w-full max-w-3xl px-4 pb-6">
+        <BusinessHeader />
+        <div className="pt-4">
+          {children}
+        </div>
+      </div>
+    </main>
+  )
 }
 
 
