@@ -2,7 +2,7 @@
 
 
 
-import { Effect, Layer, Ref } from "effect"
+import { Effect, Layer, Option } from "effect"
 import { auth } from '@clerk/nextjs/server'
 
 
@@ -27,7 +27,7 @@ export const UsersLive = UserRpcs.toLayer(
     return {
       UserList: () => userService.list(),
       UserById: ({ id }) => userService.byId(id),
-      UserCreate: ({ name }) => userService.create(name)
+      OnboardUser: (payload) => userService.onboard(payload)
     }
   })
 ).pipe(
@@ -43,13 +43,19 @@ export const AuthLive: Layer.Layer<AuthMiddleware> = Layer.succeed(
   //
   // You can access the headers, payload, and the RPC definition when
   // implementing the middleware.
-  AuthMiddleware.of(({ headers, payload, rpc }) => Effect.gen(function* () {
+  AuthMiddleware.of(() => Effect.gen(function* () {
     const r = yield* Effect.promise(async () => await auth())
-    yield* Effect.log(r)
 
     return yield* Effect.if(r.isAuthenticated, {
-      onTrue: () => Effect.succeed(new User({ id: r.userId!, name: "Unknown" })),
-      onFalse: () => Effect.succeed(new User({ id: "123", name: "Guest" }))
+      onTrue: () => Effect.succeed(
+
+        {
+          user: new User({ id: r.userId!, name: "kasdf" }),
+          raw: r
+        }
+
+      ),
+      onFalse: () => Effect.succeed(null)
     })
 
   })
