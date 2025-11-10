@@ -2,9 +2,12 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 const isOnboardingRoute = createRouteMatcher(["/onboarding"])
+const isApiROute = createRouteMatcher(["/api/(.*)", "/rpc(.*)", "/trpc(.*)"])
 
 export default clerkMiddleware(async (auth, req: NextRequest) => {
   const { isAuthenticated, sessionClaims, redirectToSignIn } = await auth()
+
+  if (isApiROute(req)) return NextResponse.next()
 
   // For users visiting /onboarding, don't try to redirect
   if (isAuthenticated && isOnboardingRoute(req)) {

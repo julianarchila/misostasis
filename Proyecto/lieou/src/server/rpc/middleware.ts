@@ -2,11 +2,12 @@
 import { RpcMiddleware } from "@effect/rpc"
 import { Context } from "effect"
 import { User } from "@/server/schemas/user"
+import type { Session } from "@/server/schemas/auth";
 
 // A context tag which represents the current user
 export class CurrentUser extends Context.Tag("CurrentUser")<
   CurrentUser,
-  User
+  Session
 >() { }
 
 // The context tag for the authentication middleware

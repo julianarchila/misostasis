@@ -25,6 +25,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { FormActions } from "./FormActions"
+import { useMutation } from "@tanstack/react-query"
+import { onboardUserOptions } from "@/data-acess/users"
 
 const formSchema = z
   .object({
@@ -63,6 +65,8 @@ export function OnboardingForm() {
     "explorer" | "business" | null
   >(null)
 
+  const { mutateAsync: onBoardUser } = useMutation(onboardUserOptions)
+
   const form = useForm({
     defaultValues: {
       userType: "" as "explorer" | "business",
@@ -76,9 +80,11 @@ export function OnboardingForm() {
     onSubmit: async ({ value }) => {
       console.log("Form submitted:", value)
       // TODO: Connect to backend
-      alert(
-        `Welcome ${value.fullName}! Your ${value.userType} account is being created.`
-      )
+      await onBoardUser(value, {
+        onError: (error) => {
+          console.log("Onboarding error:", error)
+        }
+      })
     },
   })
 

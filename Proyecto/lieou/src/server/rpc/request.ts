@@ -3,7 +3,8 @@
 import { Rpc, RpcGroup } from "@effect/rpc"
 import { Schema } from "effect"
 import { AuthMiddleware } from "./middleware"
-import { User } from "@/server/schemas/user"
+import { OnboardUserPayload, User } from "@/server/schemas/user"
+import { Unauthenticated } from "../schemas/error"
 
 // Define a group of RPCs for user management.
 // You can use the `RpcGroup.make` function to create a group of RPCs.
@@ -24,5 +25,10 @@ export class UserRpcs extends RpcGroup.make(
     payload: {
       name: Schema.String
     }
+  }),
+
+  Rpc.make("OnboardUser", {
+    payload: OnboardUserPayload,
+    error: Unauthenticated
   })
 ).middleware(AuthMiddleware) { }

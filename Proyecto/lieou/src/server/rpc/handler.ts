@@ -27,7 +27,8 @@ export const UsersLive = UserRpcs.toLayer(
     return {
       UserList: () => userService.list(),
       UserById: ({ id }) => userService.byId(id),
-      UserCreate: ({ name }) => userService.create(name)
+      UserCreate: ({ name }) => userService.create(name),
+      OnboardUser: (payload) => userService.onboard(payload)
     }
   })
 ).pipe(
