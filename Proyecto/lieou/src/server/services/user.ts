@@ -60,20 +60,9 @@ export class UserService extends Effect.Service<UserService>()(
 
 
       return {
-        list: () => Effect.gen(function* () {
-          const currentUser = yield* AuthSession
-          yield* Effect.log(`Current User in getCurrentUser Service: ${currentUser}`)
-
-          return yield* userRepo.findMany
-        }),
-
-        byId: (id: string) => userRepo.findById(id),
-
         onboard: (payload: OnboardUserPayload) => Effect.gen(function* () {
           const currentUser = yield* authRequired
-
           const clerkUser = yield* getClerkUserById(currentUser.user.id).pipe(Effect.orDie)
-
 
           yield* userRepo.create({
             clerk_id: currentUser.user.id,

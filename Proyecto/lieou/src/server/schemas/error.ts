@@ -1,4 +1,4 @@
-import { Schema } from "effect";
+import { Schema, Data } from "effect";
 
 // Define error schemas
 export class Unauthenticated extends Schema.TaggedError<Unauthenticated>()(
@@ -13,7 +13,9 @@ export class ClerkError extends Schema.TaggedError<ClerkError>()(
 ){}
 
 
-export class DatabaseError extends Schema.TaggedError<DatabaseError>()(
-  "DatabaseError",
-  {}
-) {}
+
+export class DatabaseError extends Data.TaggedError("DatabaseError")<{
+  cause?: unknown
+  message?: string
+}> {}
+

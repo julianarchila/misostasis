@@ -18,8 +18,7 @@ const { handler } = RpcServer.toWebHandler(UserRpcs, {
 })
 
 export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{}> }
+  request: NextRequest
 ) {
   return handler(request)
 }

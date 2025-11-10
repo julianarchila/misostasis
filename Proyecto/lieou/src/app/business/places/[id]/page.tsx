@@ -2,12 +2,9 @@
 
 import * as React from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { mockPlaces } from "@/lib/mockPlaces";
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import { BusinessNav } from "../../-components/BusinessNav";
 
 export default function BusinessPlaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);

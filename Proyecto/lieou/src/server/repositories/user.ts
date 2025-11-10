@@ -1,33 +1,18 @@
 
 // handlers.ts
-import { Effect, Ref } from "effect"
-import { OnboardUserPayload, User } from "@/server/schemas/user"
-import { getDb } from "@/server/db"
+import { Effect } from "effect"
+import * as EArray from "effect/Array"
 import { user as userTable } from "@/server/db/schema"
-import { DatabaseError } from "@/server/schemas/error"
+import { DB } from "@/server/db/service"
 
 export class UserRepository extends Effect.Service<UserRepository>()(
   "UserRepository",
   {
     effect: Effect.gen(function* () {
-      const ref = yield* Ref.make<Array<User>>([
-        new User({ id: "1", name: "Alice" }),
-        new User({ id: "2", name: "Bob" })
-      ])
+      const { DBQuery } = yield* DB
 
-      const db = getDb()
 
       return {
-        findMany: ref.get,
-        findById: (id: string) =>
-          Ref.get(ref).pipe(
-            Effect.andThen((users) => {
-              const user = users.find((user) => user.id === id)
-              return user
-                ? Effect.succeed(user)
-                : Effect.fail(`User not found: ${id}`)
-            })
-          ),
         create: (payload: {
           clerk_id: string;
           email: string;
@@ -35,16 +20,19 @@ export class UserRepository extends Effect.Service<UserRepository>()(
           role: string;
         }) => Effect.gen(function* () {
 
-          const res = yield* Effect.tryPromise({
-            try: () => db.insert(userTable).values({
-              ...payload
-            }),
-            catch: (e) => new DatabaseError()
-          })
+          return yield* DBQuery((db) => db.insert(userTable).values({ ...payload }).returning())
+            .pipe(
+              Effect.flatMap(EArray.head),
+              Effect.catchTags({
+                NoSuchElementException: () => Effect.die("Failed to create user"),
+              }),
+            )
 
         })
       }
-    })
+    }),
+    dependencies: [DB.Default],
+    accessors: true
   }
 ) { }
 

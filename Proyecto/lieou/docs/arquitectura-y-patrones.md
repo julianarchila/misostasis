@@ -16,7 +16,7 @@ Este documento resume la arquitectura, los patrones y el flujo de datos del proy
 
 - `src/server/db/`
   - `schema.ts`: tablas y relaciones (Drizzle).
-  - `index.ts`: fábrica de conexión (`drizzle`) y singleton de DB.
+  - `service.ts`: servicio `DB` con inyección de dependencias y soporte para NodePg/Pglite.
 - `src/server/repositories/`
   - `user.ts`: repositorio (mock en memoria) como `Effect.Service`.
 - `src/server/services/`
@@ -37,33 +37,92 @@ Este documento resume la arquitectura, los patrones y el flujo de datos del proy
 1) Base de datos (Drizzle) → 2) Repositorio → 3) Servicio (dominio) → 4) RPC (transporte) → 5) Cliente (Effect Query/React Query) → 6) UI (React).
 
 ### 1) DB: esquema y conexión
-Tablas (usuarios, lugares, tags, etc.) en `src/server/db/schema.ts`. Conexión singleton:
+Tablas (usuarios, lugares, tags, etc.) en `src/server/db/schema.ts`. La base de datos se gestiona mediante un servicio Effect (`DB`) que permite inyección de dependencias y facilita el cambio entre PostgreSQL (NodePg) e in-memory (Pglite) para testing:
 
 ```ts
-// src/server/db/index.ts
-import 'dotenv/config';
-import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
-import * as schema from './schema';
+// src/server/db/service.ts
+import { Effect, type Layer } from "effect"
+import { drizzle as drizzle_pg, type NodePgClient } from "drizzle-orm/node-postgres"
+import type { drizzle as drizzle_pglite } from "drizzle-orm/pglite"
+import * as dbSchema from "./schema"
+import { DatabaseError } from "@/server/schemas/error"
 
-let instance: NodePgDatabase<typeof schema> | undefined;
+type TDBClient = LiveDBClient | TestDBClient
 
-export function getDb(): NodePgDatabase<typeof schema> {
-  if (!instance) {
-    instance = drizzle({
-      schema,
-      connection: process.env.DATABASE_URL!,
-    });
-  }
-  return instance;
+export class DB extends Effect.Service<DB>()("DB", {
+  sync: () => {
+    if (!dbClient) {
+      dbClient = drizzle_pg({
+        schema: dbSchema,
+        connection: process.env.DATABASE_URL!,
+      })
+    }
+    const DBQuery = makeQueryHelper(dbClient)
+    return { client: dbClient, DBQuery }
+  },
+}) { }
+
+export const makeQueryHelper = (client: TDBClient) => {
+  return <R>(cb: DBQueryCb<R>) =>
+    Effect.gen(function* () {
+      const res = yield* Effect.tryPromise({
+        try: () => cb(client),
+        catch: (err) => new DatabaseError({ cause: err, message: "Database query failed :(" }),
+      }).pipe(
+        Effect.catchTags({
+          DatabaseError: Effect.die
+        }),
+      )
+      return res
+    })
 }
 ```
 
-### 2) Repositorios (acceso a datos)
-Los repositorios se modelan como `Effect.Service`, lo que permite:
-- Inyección de dependencias (cambiar backend: mock ↔ DB real).
-- Composición y pruebas aisladas.
+El servicio:
+- Mantiene un singleton del cliente DB (NodePg o Pglite).
+- Proporciona `DBQuery` para ejecutar consultas con manejo de errores tipado.
+- Permite inyección de dependencias: usar `DB.Default` en producción o un `Layer` alternativo en tests con Pglite.
+- Es accesible desde cualquier servicio/repositorio mediante `yield* DB`.
 
-Mock actual en `src/server/repositories/user.ts` usando `Ref<Array<User>>` para simular persistencia (findMany, findById, create).
+### 2) Repositorios (acceso a datos)
+Los repositorios se modelan como `Effect.Service` y consumen el servicio `DB` para acceder a datos:
+- Inyección de dependencias (cambiar backend: mock ↔ DB real, PostgreSQL ↔ Pglite).
+- Composición y pruebas aisladas.
+- Acceso a datos con manejo de errores tipado a través de `DBQuery`.
+
+Ejemplo en `src/server/repositories/user.ts`:
+
+```ts
+export class UserRepository extends Effect.Service<UserRepository>()(
+  "UserRepository",
+  {
+    effect: Effect.gen(function* () {
+      const { DBQuery } = yield* DB
+
+      return {
+        create: (payload: { 
+          clerk_id: string; 
+          email: string; 
+          fullName: string; 
+          role: string 
+        }) =>
+          Effect.gen(function* () {
+            return yield* DBQuery((db) =>
+              db.insert(userTable).values({ ...payload }).returning()
+            ).pipe(
+              Effect.flatMap(EArray.head),
+              Effect.catchTags({
+                NoSuchElementException: () => Effect.die("Failed to create user"),
+              }),
+            )
+          }),
+      }
+    }),
+    dependencies: [DB.Default],
+    accessors: true
+  }
+) { }
+```
 
 ### 3) Servicios (lógica de dominio)
 Los servicios encapsulan reglas de negocio y consumen repositorios. También leen el contexto de usuario actual proporcionado por middleware:
@@ -218,3 +277,18 @@ El proveedor de React Query está configurado en `src/providers.tsx` y envuelto 
 - Mantener contratos RPC como la frontera pública del backend (Schemas estrictos).
 - Servicios encapsulan lógica; repositorios encapsulan persistencia.
 - Middlewares proporcionan contexto (p.ej. usuario actual).
+- **DB Service es el punto único de acceso a la base de datos**: todos los repositorios deben consumir `DB` inyectando `dependencies: [DB.Default]`.
+- **Para testing**: crear un `Layer` alternativo con Pglite (in-memory DB) y proporcionarlo en lugar de `DB.Default` al ejecutar tests.
+
+Ejemplo de Layer para testing (pseudo-código):
+
+```ts
+// tests/db-test-layer.ts
+export const DBTestLayer = Layer.succeed(
+  DB,
+  DB.of(() => {
+    const pgliteClient = new Pglite({ schema: dbSchema })
+    return { client: pgliteClient, DBQuery: makeQueryHelper(pgliteClient) }
+  })
+)
+```

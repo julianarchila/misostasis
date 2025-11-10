@@ -5,7 +5,7 @@ import { SwipeDeck } from "@/components/person/SwipeDeck";
 import { mockPlaces, type Place } from "@/lib/mockPlaces";
 
 export default function PersonPage() {
-  const [saved, setSaved] = React.useState<Place[]>([]);
+  const [, setSaved] = React.useState<Place[]>([]);
 
   const handleSave = (place: Place) => {
     setSaved((prev) => (prev.find((p) => p.id === place.id) ? prev : [...prev, place]));
