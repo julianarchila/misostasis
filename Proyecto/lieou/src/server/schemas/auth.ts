@@ -1,8 +1,9 @@
-
-import { Schema } from "effect"
 import { User } from "./user"
-export const Session = Schema.Option(
-  User,
-)
-export type Session = Schema.Schema.Type<typeof Session>
 
+
+export type Session = {
+  user: User,
+  raw: Object & {
+    sessionClaims: Object & CustomJwtSessionClaims | null
+  },
+} 

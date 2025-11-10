@@ -29,6 +29,8 @@ import { useMutation } from "@tanstack/react-query"
 import { onboardUserOptions } from "@/data-acess/users"
 
 import { toast } from "sonner"
+import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 
 const formSchema = z
   .object({
@@ -67,6 +69,13 @@ export function OnboardingForm() {
     "explorer" | "business" | null
   >(null)
 
+  const { user } = useUser()
+  const router = useRouter()
+
+  // TODO: prefill form if user data exists
+
+
+
   const { mutate: onBoardUser } = useMutation({
     ...onboardUserOptions,
     throwOnError: false,
@@ -79,6 +88,12 @@ export function OnboardingForm() {
           toast.error("An unexpected error occurred. Please try again.")
         }
       })
+    },
+    onSuccess: async () => {
+      // Reloads the user's data from the Clerk API
+      await user?.reload()
+      router.push('/')
+
     }
   })
 

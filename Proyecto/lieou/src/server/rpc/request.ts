@@ -20,13 +20,6 @@ export class UserRpcs extends RpcGroup.make(
       id: Schema.String
     }
   }),
-  Rpc.make("UserCreate", {
-    success: User,
-    payload: {
-      name: Schema.String
-    }
-  }),
-
   Rpc.make("OnboardUser", {
     payload: OnboardUserPayload,
     error: Unauthenticated

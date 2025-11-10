@@ -1,7 +1,7 @@
 // server.ts
 import { HttpServer } from "@effect/platform"
 import { RpcSerialization, RpcServer } from "@effect/rpc"
-import { Layer } from "effect"
+import { Layer, Logger } from "effect"
 import { AuthLive, UsersLive } from "@/server/rpc/handler"
 import { UserRpcs } from "@/server/rpc/request"
 import { NextRequest } from "next/server"
@@ -12,7 +12,8 @@ const { handler } = RpcServer.toWebHandler(UserRpcs, {
     UsersLive,
     AuthLive,
     RpcSerialization.layerNdjson,
-    HttpServer.layerContext
+    HttpServer.layerContext,
+    Logger.pretty
   )
 })
 

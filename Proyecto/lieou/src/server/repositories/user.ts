@@ -1,7 +1,10 @@
 
 // handlers.ts
 import { Effect, Ref } from "effect"
-import { User } from "@/server/schemas/user"
+import { OnboardUserPayload, User } from "@/server/schemas/user"
+import { getDb } from "@/server/db"
+import { user as userTable } from "@/server/db/schema"
+import { DatabaseError } from "@/server/schemas/error"
 
 export class UserRepository extends Effect.Service<UserRepository>()(
   "UserRepository",
@@ -11,6 +14,8 @@ export class UserRepository extends Effect.Service<UserRepository>()(
         new User({ id: "1", name: "Alice" }),
         new User({ id: "2", name: "Bob" })
       ])
+
+      const db = getDb()
 
       return {
         findMany: ref.get,
@@ -23,11 +28,20 @@ export class UserRepository extends Effect.Service<UserRepository>()(
                 : Effect.fail(`User not found: ${id}`)
             })
           ),
-        create: (name: string) =>
-          Ref.updateAndGet(ref, (users) => [
-            ...users,
-            new User({ id: String(users.length + 1), name })
-          ]).pipe(Effect.andThen((users) => users[users.length - 1]))
+        create: (payload: {
+          clerk_id: string;
+          email: string;
+          role: string;
+        }) => Effect.gen(function* () {
+
+          const res = yield* Effect.tryPromise({
+            try: () => db.insert(userTable).values({
+              ...payload
+            }),
+            catch: (e) => new DatabaseError
+          })
+
+        })
       }
     })
   }

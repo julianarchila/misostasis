@@ -27,7 +27,6 @@ export const UsersLive = UserRpcs.toLayer(
     return {
       UserList: () => userService.list(),
       UserById: ({ id }) => userService.byId(id),
-      UserCreate: ({ name }) => userService.create(name),
       OnboardUser: (payload) => userService.onboard(payload)
     }
   })
@@ -48,9 +47,17 @@ export const AuthLive: Layer.Layer<AuthMiddleware> = Layer.succeed(
     const r = yield* Effect.promise(async () => await auth())
     yield* Effect.log(r)
 
+
     return yield* Effect.if(r.isAuthenticated, {
-      onTrue: () => Effect.succeed(Option.some(new User({ id: r.userId!, name: "Unknown" }))),
-      onFalse: () => Effect.succeed(Option.none())
+      onTrue: () => Effect.succeed(
+
+        {
+          user: new User({ id: r.userId!, name: "kasdf" }),
+          raw: r
+        }
+
+      ),
+      onFalse: () => Effect.succeed(null)
     })
 
   })
