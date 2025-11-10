@@ -1,10 +1,10 @@
 
 // handlers.ts
 import { Effect, Ref } from "effect"
-import { OnboardUserPayload, User } from "@/server/schemas/user"
-import { getDb } from "@/server/db"
+import { User } from "@/server/schemas/user"
+import * as EArray from "effect/Array"
 import { user as userTable } from "@/server/db/schema"
-import { DatabaseError } from "@/server/schemas/error"
+import { DB } from "@/server/db/service"
 
 export class UserRepository extends Effect.Service<UserRepository>()(
   "UserRepository",
@@ -14,8 +14,8 @@ export class UserRepository extends Effect.Service<UserRepository>()(
         new User({ id: "1", name: "Alice" }),
         new User({ id: "2", name: "Bob" })
       ])
+      const { DBQuery } = yield* DB
 
-      const db = getDb()
 
       return {
         findMany: ref.get,
@@ -35,16 +35,19 @@ export class UserRepository extends Effect.Service<UserRepository>()(
           role: string;
         }) => Effect.gen(function* () {
 
-          const res = yield* Effect.tryPromise({
-            try: () => db.insert(userTable).values({
-              ...payload
-            }),
-            catch: (e) => new DatabaseError()
-          })
+          yield* DBQuery((db) => db.insert(userTable).values({ ...payload }).returning())
+            .pipe(
+              Effect.flatMap(EArray.head),
+              Effect.catchTags({
+                NoSuchElementException: () => Effect.succeed(null),
+              }),
+
+            )
 
         })
       }
-    })
+    }),
+    dependencies: [DB.Default],
   }
 ) { }
 
