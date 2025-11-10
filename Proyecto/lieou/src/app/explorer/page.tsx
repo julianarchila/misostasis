@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { SwipeDeck } from "@/components/person/SwipeDeck";
 import { mockPlaces, type Place } from "@/lib/mockPlaces";
+import { ExplorerNav } from "./-components/ExplorerNav";
 
 export default function PersonPage() {
   const [saved, setSaved] = React.useState<Place[]>([]);
@@ -41,57 +41,14 @@ export default function PersonPage() {
               </SignedIn>
             </div>
           </div>
-          <Tabs defaultValue="discover" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="discover">Discover</TabsTrigger>
-              <TabsTrigger value="saved">Saved</TabsTrigger>
-            </TabsList>
-            <TabsContent value="discover" className="pt-4">
-              <SwipeDeck places={mockPlaces} onSave={handleSave} onDiscard={handleDiscard} />
-            </TabsContent>
-            <TabsContent value="saved" className="pt-4">
-              <SavedList items={saved} />
-            </TabsContent>
-          </Tabs>
+          <div className="pt-3">
+            <ExplorerNav />
+          </div>
+        </div>
+        <div className="pt-4">
+          <SwipeDeck places={mockPlaces} onSave={handleSave} onDiscard={handleDiscard} />
         </div>
       </div>
     </main>
   );
 }
-
-function SavedList({ items }: { items: Place[] }) {
-  if (items.length === 0) {
-    return (
-      <div className="py-16 text-center">
-        <div className="text-base font-medium">No saved places yet</div>
-        <div className="text-sm text-neutral-500 mt-1">Swipe right on places to add them here.</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {items.map((p) => (
-        <Card key={p.id} className="overflow-hidden">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-3">
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
-                <Image src={p.photoUrl} alt={p.name} fill className="object-cover" sizes="64px" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <div className="truncate font-medium">{p.name}</div>
-                  <Badge variant="secondary" className="bg-neutral-100 text-neutral-700">{p.category}</Badge>
-                </div>
-                <div className="text-xs text-neutral-500 truncate">{p.description}</div>
-              </div>
-              <Button variant="outline" className="ml-auto">View on map</Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-
