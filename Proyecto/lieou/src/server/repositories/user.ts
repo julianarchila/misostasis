@@ -35,19 +35,19 @@ export class UserRepository extends Effect.Service<UserRepository>()(
           role: string;
         }) => Effect.gen(function* () {
 
-          yield* DBQuery((db) => db.insert(userTable).values({ ...payload }).returning())
+          return yield* DBQuery((db) => db.insert(userTable).values({ ...payload }).returning())
             .pipe(
               Effect.flatMap(EArray.head),
               Effect.catchTags({
-                NoSuchElementException: () => Effect.succeed(null),
+                NoSuchElementException: () => Effect.die("Failed to create user"),
               }),
-
             )
 
         })
       }
     }),
     dependencies: [DB.Default],
+    accessors: true
   }
 ) { }
 

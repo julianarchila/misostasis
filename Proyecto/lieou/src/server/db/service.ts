@@ -45,10 +45,10 @@ export const makeQueryHelper = (client: TDBClient) => {
     Effect.gen(function* () {
       const res = yield* Effect.tryPromise({
         try: () => cb(client),
-        catch: (err) => new DatabaseError({ cause: err }),
+        catch: (err) => new DatabaseError({ cause: err, message: "Database query failed :(" }),
       }).pipe(
         Effect.catchTags({
-          DatabaseError: (e) => Effect.die(e),
+            DatabaseError: Effect.die
         }),
       )
 
