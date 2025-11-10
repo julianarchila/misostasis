@@ -1,13 +1,13 @@
 
 
 // handlers.ts
-import { Effect, Option } from "effect"
+import { Effect } from "effect"
 import { AuthSession } from "@/server/rpc/middleware"
 import { UserRepository } from "@/server/repositories/user"
 import { type OnboardUserPayload } from "@/server/schemas/user"
 import { ClerkError, Unauthenticated } from "@/server/schemas/error"
 
-import { auth, clerkClient } from '@clerk/nextjs/server'
+import { clerkClient } from '@clerk/nextjs/server'
 
 
 
@@ -32,6 +32,25 @@ export const setOnboarded = (userId: string) => Effect.gen(function* () {
 
 })
 
+
+export const getClerkUserById = (userId: string) => Effect.gen(function* () {
+  const client = yield* Effect.promise(clerkClient)
+
+  const user = yield* Effect.tryPromise({
+    try: () => client.users.getUser(userId),
+    catch: () => new ClerkError("There was an error fetching the user.")
+  })
+
+  if (!user.primaryEmailAddress) {
+    return yield* Effect.fail(new ClerkError("User does not have a primary email address."))
+  }
+
+  return user
+
+
+
+})
+
 export class UserService extends Effect.Service<UserService>()(
   "UserService",
   {
@@ -52,11 +71,14 @@ export class UserService extends Effect.Service<UserService>()(
 
         onboard: (payload: OnboardUserPayload) => Effect.gen(function* () {
           const currentUser = yield* authRequired
-          // TODO: use clerk client to get full user
+
+          const clerkUser = yield* getClerkUserById(currentUser.user.id).pipe(Effect.orDie)
+
 
           yield* userRepo.create({
             clerk_id: currentUser.user.id,
-            email: currentUser.raw.sessionClaims?.metadata.email || "",
+            email: clerkUser.primaryEmailAddress!.emailAddress,
+            fullName: payload.fullName,
             role: payload.userType
           }).pipe(Effect.orDie)
 

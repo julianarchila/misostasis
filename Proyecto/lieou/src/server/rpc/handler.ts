@@ -45,8 +45,6 @@ export const AuthLive: Layer.Layer<AuthMiddleware> = Layer.succeed(
   // implementing the middleware.
   AuthMiddleware.of(() => Effect.gen(function* () {
     const r = yield* Effect.promise(async () => await auth())
-    yield* Effect.log(r)
-
 
     return yield* Effect.if(r.isAuthenticated, {
       onTrue: () => Effect.succeed(

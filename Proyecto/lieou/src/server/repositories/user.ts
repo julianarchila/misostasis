@@ -31,6 +31,7 @@ export class UserRepository extends Effect.Service<UserRepository>()(
         create: (payload: {
           clerk_id: string;
           email: string;
+          fullName: string;
           role: string;
         }) => Effect.gen(function* () {
 
@@ -38,7 +39,7 @@ export class UserRepository extends Effect.Service<UserRepository>()(
             try: () => db.insert(userTable).values({
               ...payload
             }),
-            catch: (e) => new DatabaseError
+            catch: (e) => new DatabaseError()
           })
 
         })

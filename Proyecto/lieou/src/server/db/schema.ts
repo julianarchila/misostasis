@@ -10,6 +10,7 @@ export const user = pgTable("user", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   clerk_id: text("clerk_id").notNull().unique(),
   email: text("email").notNull().unique(),
+  fullName: text("full_name").notNull(),
   role: text("role").notNull(),
   created_at: timestamp("created_at").defaultNow(),
 });

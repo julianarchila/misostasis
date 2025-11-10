@@ -32,37 +32,15 @@ import { toast } from "sonner"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 
-const formSchema = z
-  .object({
-    userType: z.enum(["explorer", "business"]),
-    fullName: z
-      .string()
-      .min(2, "Name must be at least 2 characters.")
-      .max(50, "Name must be at most 50 characters."),
-    businessName: z.string(),
-    location: z
-      .string()
-      .min(2, "Location must be at least 2 characters.")
-      .max(100, "Location must be at most 100 characters."),
-  })
-  .superRefine((data, ctx) => {
-    // Validate user type selection
-    if (!data.userType) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Please select a user type.",
-        path: ["userType"],
-      })
-    }
-    // Require business name if user type is business
-    if (data.userType === "business" && !data.businessName) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Business name is required.",
-        path: ["businessName"],
-      })
-    }
-  })
+const formSchema = z.object({
+  userType: z.enum(["explorer", "business"], {
+    message: "Please select a user type.",
+  }),
+  fullName: z
+    .string()
+    .min(2, "Name must be at least 2 characters.")
+    .max(50, "Name must be at most 50 characters."),
+})
 
 export function OnboardingForm() {
   const [selectedUserType, setSelectedUserType] = useState<
@@ -72,11 +50,8 @@ export function OnboardingForm() {
   const { user } = useUser()
   const router = useRouter()
 
-  // TODO: prefill form if user data exists
 
-
-
-  const { mutate: onBoardUser } = useMutation({
+  const { mutate: onBoardUser, isPending } = useMutation({
     ...onboardUserOptions,
     throwOnError: false,
     onError: (error) => {
@@ -100,9 +75,7 @@ export function OnboardingForm() {
   const form = useForm({
     defaultValues: {
       userType: "" as "explorer" | "business",
-      fullName: "",
-      businessName: "",
-      location: "",
+      fullName: user?.fullName || "",
     },
     validators: {
       onSubmit: formSchema,
@@ -150,6 +123,7 @@ export function OnboardingForm() {
                         field.handleChange(value as "explorer" | "business")
                         setSelectedUserType(value as "explorer" | "business")
                       }}
+                      disabled={isPending}
                     >
                       <FieldLabel
                         htmlFor="usertype-explorer"
@@ -219,94 +193,28 @@ export function OnboardingForm() {
 
             {/* Basic Information */}
             {selectedUserType && (
-              <>
-                <form.Field
-                  name="fullName"
-                >
-                  {(field) => {
-                    const isInvalid =
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                    return (
-                      <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor="fullName">Full name</FieldLabel>
-                        <Input
-                          id="fullName"
-                          name={field.name}
-                          value={field.state.value}
-                          onBlur={field.handleBlur}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          aria-invalid={isInvalid}
-                          placeholder="John Doe"
-                          autoComplete="name"
-                        />
-                        <FieldDescription>
-                          This is how you&apos;ll appear on Lieou
-                        </FieldDescription>
-                        {isInvalid && (
-                          <FieldError errors={field.state.meta.errors} />
-                        )}
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field
-                  name="location"
-                >
-                  {(field) => {
-                    const isInvalid =
-                      field.state.meta.isTouched && !field.state.meta.isValid
-                    return (
-                      <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor="location">Location</FieldLabel>
-                        <Input
-                          id="location"
-                          name={field.name}
-                          value={field.state.value}
-                          onBlur={field.handleBlur}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          aria-invalid={isInvalid}
-                          placeholder="City, Country"
-                          autoComplete="address-level2"
-                        />
-                        <FieldDescription>
-                          {selectedUserType === "business"
-                            ? "Where is your business located?"
-                            : "Where would you like to explore?"}
-                        </FieldDescription>
-                        {isInvalid && (
-                          <FieldError errors={field.state.meta.errors} />
-                        )}
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-              </>
-            )}
-
-            {/* Business-specific fields */}
-            {selectedUserType === "business" && (
               <form.Field
-                name="businessName"
+                name="fullName"
               >
                 {(field) => {
                   const isInvalid =
                     field.state.meta.isTouched && !field.state.meta.isValid
                   return (
                     <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor="businessName">Business name</FieldLabel>
+                      <FieldLabel htmlFor="fullName">Full name</FieldLabel>
                       <Input
-                        id="businessName"
+                        id="fullName"
                         name={field.name}
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         aria-invalid={isInvalid}
-                        placeholder="Your Business Name"
-                        autoComplete="organization"
+                        placeholder="John Doe"
+                        autoComplete="name"
+                        disabled={isPending}
                       />
                       <FieldDescription>
-                        The name of your business or venue
+                        This is how you&apos;ll appear on Lieou
                       </FieldDescription>
                       {isInvalid && (
                         <FieldError errors={field.state.meta.errors} />
@@ -322,6 +230,7 @@ export function OnboardingForm() {
           <FormActions
             selectedUserType={selectedUserType}
             onReset={() => form.reset()}
+            isLoading={isPending}
           />
         </form>
       </CardContent>

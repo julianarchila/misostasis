@@ -9,9 +9,7 @@ export class User extends Schema.Class<User>("User")({
 
 
 export const OnboardUserPayload = Schema.Struct({
-  businessName: Schema.optional(Schema.String),
   fullName: Schema.String,
-  location: Schema.String,
   userType: Schema.Union(
     Schema.Literal("business"),
     Schema.Literal("explorer")
