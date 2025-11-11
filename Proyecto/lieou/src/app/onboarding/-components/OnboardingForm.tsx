@@ -70,7 +70,7 @@ export function OnboardingForm() {
       const role =
         selectedUserType ??
         ((user?.publicMetadata as Record<string, unknown>)?.role as "explorer" | "business" | undefined)
-      router.replace(role === "business" ? "/business" : "/explorer")
+      window.location.replace(role === "business" ? "/business" : "/explorer")
     }
   })
 
