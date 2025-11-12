@@ -16,36 +16,13 @@ type SwipeDeckProps = {
 
 export function SwipeDeck({ places, onSave, onDiscard }: SwipeDeckProps) {
   const [index, setIndex] = React.useState(0);
-  const [dragX, setDragX] = React.useState(0);
-  const startXRef = React.useRef<number | null>(null);
   const active = places[index];
-
-  const threshold = 80; // px to decide
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startXRef.current = e.touches[0]?.clientX ?? null;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (startXRef.current == null) return;
-    const delta = e.touches[0].clientX - startXRef.current;
-    setDragX(delta);
-  };
 
   const completeSwipe = (direction: "left" | "right") => {
     if (!active) return;
     if (direction === "right") onSave(active);
     if (direction === "left") onDiscard(active);
     setIndex((i) => i + 1);
-    setDragX(0);
-  };
-
-  const handleTouchEnd = () => {
-    if (Math.abs(dragX) > threshold) {
-      completeSwipe(dragX > 0 ? "right" : "left");
-    } else {
-      setDragX(0);
-    }
   };
 
   const handleButton = (dir: "left" | "right") => () => completeSwipe(dir);
@@ -61,13 +38,9 @@ export function SwipeDeck({ places, onSave, onDiscard }: SwipeDeckProps) {
 
   return (
     <div className="w-full">
-      <div className="relative h-[70svh] select-none" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+      <div className="relative h-[70svh] select-none">
         <Card
           className="absolute inset-0 overflow-hidden rounded-2xl shadow-lg will-change-transform"
-          style={{
-            transform: `translateX(${dragX}px) rotate(${dragX * 0.05}deg)`,
-            transition: dragX === 0 ? "transform 200ms ease" : undefined,
-          }}
         >
           <CardContent className="p-0 h-full">
             <div className="relative h-full">
