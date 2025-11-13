@@ -25,7 +25,7 @@ export const UsersLive = UserRpcs.toLayer(
     const userService = yield* UserService
 
     return {
-      OnboardUser: (payload) => userService.onboard(payload)
+      UserOnboard: (payload) => userService.onboard(payload)
     }
   })
 ).pipe(

@@ -8,8 +8,18 @@ import { Unauthenticated } from "../schemas/error"
 // Define a group of RPCs for user management.
 // You can use the `RpcGroup.make` function to create a group of RPCs.
 export class UserRpcs extends RpcGroup.make(
-  Rpc.make("OnboardUser", {
+  Rpc.make("Onboard", {
     payload: OnboardUserPayload,
     error: Unauthenticated
   })
-).middleware(AuthMiddleware) { }
+).prefix("User").middleware(AuthMiddleware) { }
+
+
+
+
+
+export class PlaceRpcs extends RpcGroup.make(
+
+  Rpc.make("CreatePlace")
+
+){}

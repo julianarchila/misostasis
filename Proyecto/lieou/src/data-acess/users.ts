@@ -9,6 +9,6 @@ export const onboardUserOptions = eq.mutationOptions({
   mutationFn: (payload: OnboardUserPayload) => Effect.gen(function* () {
     const rpcClient = yield* MyRpcClient
 
-    return yield* rpcClient.OnboardUser(payload)
+    return yield* rpcClient.UserOnboard(payload)
   })
 })
