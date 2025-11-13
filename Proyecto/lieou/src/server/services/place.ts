@@ -1,25 +1,7 @@
-
-
-
-// handlers.ts
 import { Effect } from "effect"
-import { AuthSession } from "@/server/rpc/middleware"
-import { Unauthenticated } from "@/server/schemas/error"
-import { PlaceRepository } from "../repositories/place"
-import { CreatePlacePayload } from "../schemas/place"
-
-
-
-
-
-export const authRequired = Effect.gen(function* () {
-  const currentUser = yield* AuthSession
-  return yield* Effect.if(currentUser === null, {
-    onTrue: () => Effect.fail(new Unauthenticated({ message: "User is not authenticated" })),
-    onFalse: () => Effect.succeed(currentUser!)
-  })
-})
-
+import { PlaceRepository } from "@/server/repositories/place"
+import { CreatePlacePayload } from "@/server/schemas/place"
+import { authRequired } from "@/server/utils/auth"
 
 export class PlaceService extends Effect.Service<PlaceService>()(
   "PlaceService",
