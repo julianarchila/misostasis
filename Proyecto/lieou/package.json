@@ -39,6 +39,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@effect/language-service": "^0.55.4",
     "@electric-sql/pglite": "^0.3.14",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",

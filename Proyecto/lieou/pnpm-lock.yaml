@@ -84,6 +84,9 @@ importers:
         specifier: ^4.1.12
         version: 4.1.12
     devDependencies:
+      '@effect/language-service':
+        specifier: ^0.55.4
+        version: 0.55.4
       '@electric-sql/pglite':
         specifier: ^0.3.14
         version: 0.3.14
@@ -319,6 +322,10 @@ packages:
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
+
+  '@effect/language-service@0.55.4':
+    resolution: {integrity: sha512-Oarr9llRcaMujP08wykkP32rGvRXmgq3a2pZ9+Mw45wtQC/ixuEwDhZu9LPUKQe3fFUwcU6AexFjFf8t1SlzAQ==}
+    hasBin: true
 
   '@effect/platform@0.93.0':
     resolution: {integrity: sha512-VaIv0duA+Dk2h8XYDPxCLCXGbMyd6hwuHUQt9THL1ZEqv1C3Fypg/Gi2UkzRys6TQsSnC9fJbdpMb7haPURYkQ==}
@@ -3721,6 +3728,8 @@ snapshots:
   '@csstools/css-tokenizer@3.0.4': {}
 
   '@drizzle-team/brocli@0.10.2': {}
+
+  '@effect/language-service@0.55.4': {}
 
   '@effect/platform@0.93.0(effect@3.19.3)':
     dependencies:
