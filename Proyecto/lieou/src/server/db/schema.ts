@@ -28,7 +28,7 @@ export const user_preference = pgTable("user_preference", {
 
 export const place = pgTable("place", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-  business_id: integer("business_id").references(() => user.id),
+  business_id: integer("business_id").references(() => user.id).notNull(),
   name: text("name").notNull(),
   description: text("description"),
   location: text("location"),

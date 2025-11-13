@@ -2,14 +2,14 @@
 import { HttpServer } from "@effect/platform"
 import { RpcSerialization, RpcServer } from "@effect/rpc"
 import { Layer, Logger } from "effect"
-import { AuthLive, UsersLive } from "@/server/rpc/handler"
-import { UserRpcs } from "@/server/rpc/request"
+import { AuthLive, HandlersLive} from "@/server/rpc/handler"
+import { AppRpcs } from "@/server/rpc/request"
 import { NextRequest } from "next/server"
 
 // Create a web handler for Next.js using Effect RPC
-const { handler } = RpcServer.toWebHandler(UserRpcs, {
+const { handler } = RpcServer.toWebHandler(AppRpcs, {
   layer: Layer.mergeAll(
-    UsersLive,
+    HandlersLive,
     AuthLive,
     RpcSerialization.layerNdjson,
     HttpServer.layerContext,
