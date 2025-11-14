@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { SwipeDeck } from "@/components/person/SwipeDeck";
+import { SwipeDeck } from "./-components/SwipeDeck";
 import { mockPlaces, type Place } from "@/lib/mockPlaces";
 
 export default function PersonPage() {
