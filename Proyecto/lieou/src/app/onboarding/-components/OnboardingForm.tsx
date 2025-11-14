@@ -1,15 +1,13 @@
-"use client"
+"use client";
 
-import { useForm } from "@tanstack/react-form"
-import { MapPinIcon, StoreIcon } from "lucide-react"
-import { useState } from "react"
+import { MapPinIcon, StoreIcon } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Field,
   FieldContent,
@@ -20,62 +18,20 @@ import {
   FieldSet,
   FieldLegend,
   FieldTitle,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { FormActions } from "./FormActions"
-import { useMutation } from "@tanstack/react-query"
-import { onboardUserOptions } from "@/data-acess/users"
-import { OnboardUserPayload } from "@/server/schemas/user"
-import { Schema } from "effect"
-
-import { toast } from "sonner"
-import { useUser } from "@clerk/nextjs"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { FormActions } from "./FormActions";
+import { useOnboardingForm } from "./useOnboardingForm";
 
 export function OnboardingForm() {
-  const [selectedUserType, setSelectedUserType] = useState<
-    "explorer" | "business" | null
-  >(null)
+  const { form, isPending, selectedUserType, setSelectedUserType } =
+    useOnboardingForm();
 
-  const { user } = useUser()
-
-
-  const { mutate: onBoardUser, isPending } = useMutation({
-    ...onboardUserOptions,
-    throwOnError: false,
-    onError: (error) => {
-      error.match({
-        Unauthenticated: () => {
-          toast.error("You must be logged in to complete onboarding.")
-        },
-        OrElse: () => {
-          toast.error("An unexpected error occurred. Please try again.")
-        }
-      })
-    },
-    onSuccess: async () => {
-      // Reload user to ensure publicMetadata is fresh
-      await user?.reload()
-      const role =
-        selectedUserType ??
-        ((user?.publicMetadata as Record<string, unknown>)?.role as "explorer" | "business" | undefined)
-      window.location.replace(role === "business" ? "/business" : "/explorer")
-    }
-  })
-
-  const form = useForm({
-    defaultValues: {
-      userType: "" as "explorer" | "business",
-      fullName: user?.fullName || "",
-    },
-    validators: {
-      onSubmit: Schema.standardSchemaV1(OnboardUserPayload),
-    },
-    onSubmit: async ({ value }) => {
-      console.log("Form submitted:", value)
-      onBoardUser(value)
-    },
-  })
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    form.handleSubmit();
+  };
 
   return (
     <Card className="shadow-2xl backdrop-blur-sm">
@@ -86,21 +42,13 @@ export function OnboardingForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            form.handleSubmit()
-          }}
-          className="space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6">
           <FieldGroup>
             {/* User Type Selection */}
-            <form.Field
-              name="userType"
-            >
+            <form.Field name="userType">
               {(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid
+                  field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
                   <FieldSet>
                     <FieldLegend variant="label">I want to...</FieldLegend>
@@ -111,8 +59,8 @@ export function OnboardingForm() {
                       name={field.name}
                       value={field.state.value}
                       onValueChange={(value) => {
-                        field.handleChange(value as "explorer" | "business")
-                        setSelectedUserType(value as "explorer" | "business")
+                        field.handleChange(value as "explorer" | "business");
+                        setSelectedUserType(value as "explorer" | "business");
                       }}
                       disabled={isPending}
                     >
@@ -178,18 +126,16 @@ export function OnboardingForm() {
                       <FieldError errors={field.state.meta.errors} />
                     )}
                   </FieldSet>
-                )
+                );
               }}
             </form.Field>
 
-            {/* Basic Information */}
+            {/* Full Name Field */}
             {selectedUserType && (
-              <form.Field
-                name="fullName"
-              >
+              <form.Field name="fullName">
                 {(field) => {
                   const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid
+                    field.state.meta.isTouched && !field.state.meta.isValid;
                   return (
                     <Field data-invalid={isInvalid}>
                       <FieldLabel htmlFor="fullName">Full name</FieldLabel>
@@ -211,13 +157,12 @@ export function OnboardingForm() {
                         <FieldError errors={field.state.meta.errors} />
                       )}
                     </Field>
-                  )
+                  );
                 }}
               </form.Field>
             )}
           </FieldGroup>
 
-          {/* Submit Button */}
           <FormActions
             selectedUserType={selectedUserType}
             onReset={() => form.reset()}
@@ -226,6 +171,5 @@ export function OnboardingForm() {
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }
-
