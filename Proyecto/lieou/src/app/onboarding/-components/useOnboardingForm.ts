@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Schema } from "effect";
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
-import { onboardUserOptions } from "@/data-acess/users";
+import { onboardUserOptions } from "@/data-access/users";
 import { OnboardUserPayload } from "@/server/schemas/user";
 
 export function useOnboardingForm() {

@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createPlaceOptions, getMyPlacesOptions } from "@/data-acess/places";
+import { createPlaceOptions, getMyPlacesOptions } from "@/data-access/places";
 import { CreatePlaceFormSchema } from "@/server/schemas/place";
 import { Schema } from "effect";
 

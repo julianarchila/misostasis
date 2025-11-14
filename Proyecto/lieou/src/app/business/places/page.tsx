@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getMyPlacesOptions } from "@/data-acess/places";
+import { getMyPlacesOptions } from "@/data-access/places";
 
 export default function BusinessPlacesListPage() {
   const { data: places, isLoading, error } = useQuery(getMyPlacesOptions);
