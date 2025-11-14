@@ -1,9 +1,12 @@
 import { UserRpcs } from "./user.rpcs"
 import { PlaceRpcs } from "./place.rpcs"
+import { RpcLoggingMiddleware } from "@/server/rpc/middlewares/logging"
 
 /**
  * Combined RPC groups for the entire application
  */
 export const AppRpcs = UserRpcs.merge(PlaceRpcs)
+  .middleware(RpcLoggingMiddleware) 
+
 
 export { UserRpcs, PlaceRpcs }
