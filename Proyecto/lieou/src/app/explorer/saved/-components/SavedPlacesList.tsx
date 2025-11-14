@@ -1,6 +1,3 @@
-"use client";
-
-import * as React from "react";
 import Image from "next/image";
 import { Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,15 +7,11 @@ import type { Place } from "@/lib/mockPlaces";
 
 type SavedPlacesListProps = {
   places: Place[];
+  favoritesById: Record<string, boolean>;
+  onToggleFavorite: (id: string) => void;
 };
 
-export function SavedPlacesList({ places }: SavedPlacesListProps) {
-  const [favoritesById, setFavoritesById] = React.useState<Record<string, boolean>>({});
-
-  const toggleFavorite = (id: string) => {
-    setFavoritesById((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
+export function SavedPlacesList({ places, favoritesById, onToggleFavorite }: SavedPlacesListProps) {
   if (places.length === 0) {
     return (
       <div className="py-16 text-center">
@@ -57,7 +50,7 @@ export function SavedPlacesList({ places }: SavedPlacesListProps) {
                   <Button
                     variant={isFavorite ? "default" : "outline"}
                     className={`h-8 w-8 p-0 ${isFavorite ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}`}
-                    onClick={() => toggleFavorite(p.id)}
+                    onClick={() => onToggleFavorite(p.id)}
                     aria-pressed={isFavorite}
                     aria-label={isFavorite ? "Unfavorite" : "Favorite"}
                   >

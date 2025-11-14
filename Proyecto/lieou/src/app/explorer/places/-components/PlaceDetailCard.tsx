@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -10,11 +9,11 @@ import type { Place } from "@/lib/mockPlaces";
 
 type PlaceDetailCardProps = {
   place: Place;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
 };
 
-export function PlaceDetailCard({ place }: PlaceDetailCardProps) {
-  const [isFavorite, setIsFavorite] = React.useState(false);
-
+export function PlaceDetailCard({ place, isFavorite, onToggleFavorite }: PlaceDetailCardProps) {
   return (
     <div className="mx-auto w-full">
       <div className="relative h-[48svh] w-full bg-neutral-100">
@@ -41,7 +40,7 @@ export function PlaceDetailCard({ place }: PlaceDetailCardProps) {
           <Button
             variant={isFavorite ? "default" : "outline"}
             className={`${isFavorite ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}`}
-            onClick={() => setIsFavorite((v) => !v)}
+            onClick={onToggleFavorite}
           >
             <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
             {isFavorite ? "Favorited" : "Add to favorites"}

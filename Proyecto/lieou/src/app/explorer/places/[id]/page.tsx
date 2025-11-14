@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { mockPlaces } from "@/lib/mockPlaces";
-import { PlaceDetailCard } from "../-components/PlaceDetailCard";
+import { PlaceDetailCardContainer } from "../-components/PlaceDetailCardContainer";
 
 export default function ExplorerPlaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
@@ -14,7 +14,7 @@ export default function ExplorerPlaceDetailPage({ params }: { params: Promise<{ 
     );
   }
 
-  return <PlaceDetailCard place={place} />;
+  return <PlaceDetailCardContainer place={place} />;
 }
 
 
