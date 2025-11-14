@@ -65,7 +65,7 @@ export function PlaceForm() {
                   <Textarea
                     id="place-description"
                     name={field.name}
-                    value={field.state.value}
+                    value={field.state.value ?? ""}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     aria-invalid={isInvalid}
@@ -94,7 +94,7 @@ export function PlaceForm() {
                   <Input
                     id="place-location"
                     name={field.name}
-                    value={field.state.value}
+                    value={field.state.value ?? ""}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     aria-invalid={isInvalid}

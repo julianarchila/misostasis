@@ -3,7 +3,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createPlaceOptions } from "@/data-acess/places";
-import { placeFormSchema, placeFormDefaults } from "../-components/placeFormConfig";
+import { CreatePlaceFormSchema } from "@/server/schemas/place";
+import { Schema } from "effect";
 
 export function useCreatePlaceForm() {
   const router = useRouter();
@@ -28,9 +29,13 @@ export function useCreatePlaceForm() {
   });
 
   const form = useForm({
-    defaultValues: placeFormDefaults,
+    defaultValues: {
+      name: "",
+      description: null as string | null,
+      location: null as string | null,
+    },
     validators: {
-      onSubmit: placeFormSchema,
+      onSubmit: Schema.standardSchemaV1(CreatePlaceFormSchema),
     },
     onSubmit: async ({ value }) => {
       createPlace({

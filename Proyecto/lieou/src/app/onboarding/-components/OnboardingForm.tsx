@@ -1,7 +1,6 @@
 "use client"
 
 import { useForm } from "@tanstack/react-form"
-import * as z from "zod"
 import { MapPinIcon, StoreIcon } from "lucide-react"
 import { useState } from "react"
 import {
@@ -27,19 +26,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { FormActions } from "./FormActions"
 import { useMutation } from "@tanstack/react-query"
 import { onboardUserOptions } from "@/data-acess/users"
+import { OnboardUserPayload } from "@/server/schemas/user"
+import { Schema } from "effect"
 
 import { toast } from "sonner"
 import { useUser } from "@clerk/nextjs"
-
-const formSchema = z.object({
-  userType: z.enum(["explorer", "business"], {
-    message: "Please select a user type.",
-  }),
-  fullName: z
-    .string()
-    .min(2, "Name must be at least 2 characters.")
-    .max(50, "Name must be at most 50 characters."),
-})
 
 export function OnboardingForm() {
   const [selectedUserType, setSelectedUserType] = useState<
@@ -78,7 +69,7 @@ export function OnboardingForm() {
       fullName: user?.fullName || "",
     },
     validators: {
-      onSubmit: formSchema,
+      onSubmit: Schema.standardSchemaV1(OnboardUserPayload),
     },
     onSubmit: async ({ value }) => {
       console.log("Form submitted:", value)
