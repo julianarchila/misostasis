@@ -2,7 +2,7 @@
 import { createEffectQuery } from "effect-query";
 import { Effect, Layer } from "effect";
 import { RpcClient, RpcSerialization } from "@effect/rpc";
-import { UserRpcs } from "@/server/rpc/request"
+import { AppRpcs } from "@/server/rpc/groups"
 import { FetchHttpClient } from "@effect/platform";
 
 
@@ -19,7 +19,7 @@ export class MyRpcClient extends Effect.Service<MyRpcClient>()(
   'example/MyRpcClient',
   {
     dependencies: [],
-    scoped: RpcClient.make(UserRpcs)
+    scoped: RpcClient.make(AppRpcs)
   }
 ) { }
 
