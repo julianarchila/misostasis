@@ -16,7 +16,7 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
       const { DBQuery } = yield* DB
 
       return {
-        create: (payload: CreatePlacePayload) =>
+        create: (payload: CreatePlacePayload & { business_id: number }) =>
           Effect.gen(function* () {
             return yield* DBQuery((db) =>
               db.insert(placeTable).values(payload).returning()

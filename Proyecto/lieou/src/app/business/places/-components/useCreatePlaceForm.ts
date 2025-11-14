@@ -1,0 +1,45 @@
+import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { createPlaceOptions } from "@/data-acess/places";
+import { placeFormSchema, placeFormDefaults } from "../-components/placeFormConfig";
+
+export function useCreatePlaceForm() {
+  const router = useRouter();
+
+  const { mutate: createPlace, isPending } = useMutation({
+    ...createPlaceOptions,
+    throwOnError: false,
+    onError: (error) => {
+      error.match({
+        Unauthenticated: () => {
+          toast.error("You must be logged in to create a place.");
+        },
+        OrElse: () => {
+          toast.error("Failed to create place. Please try again.");
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Place created successfully!");
+      router.push("/business/places");
+    },
+  });
+
+  const form = useForm({
+    defaultValues: placeFormDefaults,
+    validators: {
+      onSubmit: placeFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      createPlace({
+        name: value.name,
+        description: value.description || null,
+        location: value.location || null,
+      });
+    },
+  });
+
+  return { form, isPending };
+}

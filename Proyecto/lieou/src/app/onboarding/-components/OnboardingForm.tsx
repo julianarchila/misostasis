@@ -30,7 +30,6 @@ import { onboardUserOptions } from "@/data-acess/users"
 
 import { toast } from "sonner"
 import { useUser } from "@clerk/nextjs"
-import { useRouter } from "next/navigation"
 
 const formSchema = z.object({
   userType: z.enum(["explorer", "business"], {
@@ -48,7 +47,6 @@ export function OnboardingForm() {
   >(null)
 
   const { user } = useUser()
-  const router = useRouter()
 
 
   const { mutate: onBoardUser, isPending } = useMutation({

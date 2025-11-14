@@ -1,5 +1,5 @@
 import { Rpc, RpcGroup } from "@effect/rpc"
-import { AuthMiddleware } from "@/server/rpc/middlewares"
+import { AuthMiddleware } from "@/server/rpc/middlewares/auth"
 import { CreatePlacePayloadSchema, PlaceSchema } from "@/server/schemas/place"
 import { Unauthenticated } from "@/server/schemas/error"
 

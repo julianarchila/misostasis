@@ -1,28 +1,43 @@
 import { Effect } from "effect"
 import { PlaceRepository } from "@/server/repositories/place"
+import { UserRepository } from "@/server/repositories/user"
 import { CreatePlacePayload } from "@/server/schemas/place"
 import { authRequired } from "@/server/utils/auth"
+import { Unauthenticated } from "@/server/schemas/error"
 
 export class PlaceService extends Effect.Service<PlaceService>()(
   "PlaceService",
   {
     effect: Effect.gen(function* () {
 
-      const userRepo = yield* PlaceRepository 
+      const placeRepo = yield* PlaceRepository
+      const userRepo = yield* UserRepository
 
 
       return {
         create: (payload: CreatePlacePayload) => Effect.gen(function*(){
-          yield* authRequired
+          const currentUser = yield* authRequired
 
-          return yield* userRepo.create(payload)
+          // Get the database user ID from the Clerk user ID
+          const dbUser = yield* userRepo.findByClerkId(currentUser.user.id)
+          
+          if (!dbUser) {
+            return yield* Effect.fail(new Unauthenticated({ 
+              message: "User not found in database. Please complete onboarding first." 
+            }))
+          }
+
+          return yield* placeRepo.create({
+            ...payload,
+            business_id: dbUser.id
+          })
 
         })
       }
 
     }),
 
-    dependencies: [PlaceRepository.Default],
+    dependencies: [PlaceRepository.Default, UserRepository.Default],
     accessors: true
   }
 ) { }

@@ -1,5 +1,5 @@
 import { Effect } from "effect"
-import { AuthSession } from "@/server/rpc/middlewares"
+import { AuthSession } from "@/server/rpc/middlewares/auth"
 import { ClerkError, Unauthenticated } from "@/server/schemas/error"
 import { clerkClient } from '@clerk/nextjs/server'
 

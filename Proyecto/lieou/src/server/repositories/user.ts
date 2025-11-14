@@ -2,6 +2,7 @@
 // handlers.ts
 import { Effect } from "effect"
 import * as EArray from "effect/Array"
+import { eq } from "drizzle-orm"
 import { user as userTable } from "@/server/db/schema"
 import { DB } from "@/server/db/service"
 
@@ -28,6 +29,17 @@ export class UserRepository extends Effect.Service<UserRepository>()(
               }),
             )
 
+        }),
+
+        findByClerkId: (clerkId: string) => Effect.gen(function* () {
+          return yield* DBQuery((db) =>
+            db.select().from(userTable).where(eq(userTable.clerk_id, clerkId))
+          ).pipe(
+            Effect.flatMap(EArray.head),
+            Effect.catchTags({
+              NoSuchElementException: () => Effect.succeed(null),
+            }),
+          )
         })
       }
     }),

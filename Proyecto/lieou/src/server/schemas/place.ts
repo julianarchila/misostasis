@@ -13,7 +13,6 @@ export const PlaceSchema = Schema.Struct({
 })
 
 export const CreatePlacePayloadSchema = Schema.Struct({
-  business_id: Schema.Number,
   name: Schema.String,
   description: Schema.optional(NullableString),
   location: Schema.optional(NullableString),
