@@ -1,13 +1,14 @@
 import { useForm } from "@tanstack/react-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createPlaceOptions } from "@/data-acess/places";
+import { createPlaceOptions, getMyPlacesOptions } from "@/data-acess/places";
 import { CreatePlaceFormSchema } from "@/server/schemas/place";
 import { Schema } from "effect";
 
 export function useCreatePlaceForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { mutate: createPlace, isPending } = useMutation({
     ...createPlaceOptions,
@@ -24,6 +25,10 @@ export function useCreatePlaceForm() {
     },
     onSuccess: () => {
       toast.success("Place created successfully!");
+      // Invalidate the my places query to refetch the list
+      queryClient.invalidateQueries({
+        queryKey: getMyPlacesOptions.queryKey
+      });
       router.push("/business/places");
     },
   });

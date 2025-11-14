@@ -1,38 +1,70 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { mockPlaces } from "@/lib/mockPlaces";
+import { getMyPlacesOptions } from "@/data-acess/places";
 
 export default function BusinessPlacesListPage() {
-  const places = mockPlaces; // mock data for skeleton
+  const { data: places, isLoading, error } = useQuery(getMyPlacesOptions);
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="h-40 w-full bg-neutral-100 animate-pulse" />
+              <div className="p-3 space-y-2">
+                <div className="h-4 bg-neutral-100 rounded animate-pulse w-3/4" />
+                <div className="h-3 bg-neutral-100 rounded animate-pulse w-1/2" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500">Error loading places: {error.message}</p>
+      </div>
+    );
+  }
+
+  if (!places || places.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-neutral-500">No places yet. Create your first place!</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {places.map((p) => (
         <Card key={p.id} className="overflow-hidden">
           <CardContent className="p-0">
-            <div className="relative h-40 w-full bg-neutral-100">
-              <Image
-                src={p.photoUrl}
-                alt={p.name}
-                fill
-                sizes="(max-width: 768px) 100vw, 600px"
-                className="object-cover"
-              />
+            <div className="relative h-40 w-full bg-neutral-100 flex items-center justify-center">
+              <span className="text-neutral-400 text-sm">No image</span>
             </div>
             <div className="p-3">
               <div className="flex items-center gap-2">
                 <div className="font-medium">{p.name}</div>
-                <Badge variant="secondary" className="bg-neutral-100 text-neutral-700">
-                  {p.category}
-                </Badge>
+                {p.location && (
+                  <Badge variant="secondary" className="bg-neutral-100 text-neutral-700">
+                    {p.location}
+                  </Badge>
+                )}
               </div>
               <div className="mt-2 flex items-center justify-between">
-                <div className="text-xs text-neutral-500 truncate pr-2">{p.description}</div>
+                <div className="text-xs text-neutral-500 truncate pr-2">
+                  {p.description || "No description"}
+                </div>
                 <Button asChild variant="outline" className="h-8 px-2">
                   <a href={`/business/places/${p.id}`}>View</a>
                 </Button>

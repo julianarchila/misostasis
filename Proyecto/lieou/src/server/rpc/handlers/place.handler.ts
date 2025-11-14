@@ -10,7 +10,8 @@ export const PlaceHandlersLive = PlaceRpcs.toLayer(
     const placeService = yield* PlaceService
 
     return {
-      PlaceCreate: (payload) => placeService.create(payload)
+      PlaceCreate: (payload) => placeService.create(payload),
+      PlaceGetMyPlaces: () => placeService.getMyPlaces()
     }
   })
 ).pipe(

@@ -32,6 +32,21 @@ export class PlaceService extends Effect.Service<PlaceService>()(
             business_id: dbUser.id
           })
 
+        }),
+
+        getMyPlaces: () => Effect.gen(function*(){
+          const currentUser = yield* authRequired
+
+          // Get the database user ID from the Clerk user ID
+          const dbUser = yield* userRepo.findByClerkId(currentUser.user.id)
+          
+          if (!dbUser) {
+            return yield* Effect.fail(new Unauthenticated({ 
+              message: "User not found in database. Please complete onboarding first." 
+            }))
+          }
+
+          return yield* placeRepo.findByBusinessId(dbUser.id)
         })
       }
 
