@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment jsdom
+ */
+
 import * as React from "react";
 import { render, screen, cleanup } from "@testing-library/react";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -79,18 +83,16 @@ describe("ExplorerHeader", () => {
     expect(screen.getByText("Explorer")).toBeDefined();
   });
 
-  it("updates auth UI when signed-in state toggles without remount (rerender)", () => {
-    setPathname("/explorer");
-    setSignedIn(false);
-
+  it("updates title when pathname changes without remount (rerender)", () => {
+    
+    setPathname("/explorer/saved/abc123");
     const { rerender } = render(<ExplorerHeader />);
-    expect(screen.getByText("Sign In")).toBeDefined();
+    expect(screen.getByText("Saved")).toBeDefined();
 
     
-    setSignedIn(true);
+    setPathname("/explorer/preferences/account");
     rerender(<ExplorerHeader />);
-
-    expect(screen.queryByText("Sign In")).toBeNull();
-    expect(screen.getByTestId("user")).toBeDefined();
+    expect(screen.getByText("Preferences")).toBeDefined();
+    expect(screen.queryByText("Saved")).toBeNull();
   });
 });
