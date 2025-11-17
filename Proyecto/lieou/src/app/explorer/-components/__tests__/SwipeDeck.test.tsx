@@ -3,8 +3,8 @@
  */
 
 import * as React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { describe, expect, it, vi, afterEach } from "vitest";
 
 import { SwipeDeck } from "../SwipeDeck";
 import type { Place } from "@/lib/mockPlaces";
@@ -26,6 +26,10 @@ const createPlaces = (): Place[] => [
   },
 ];
 
+afterEach(() => {
+  cleanup();
+});
+
 describe("SwipeDeck", () => {
   it("renders the first place and advances after saving with the button", async () => {
     const places = createPlaces();
@@ -43,6 +47,24 @@ describe("SwipeDeck", () => {
     expect(onSave).toHaveBeenCalledWith(places[0]);
     await screen.findAllByText(places[1].name);
     expect(onDiscard).not.toHaveBeenCalled();
+  });
+
+  it("renders the first place and advances after discarding with the button", async () => {
+    const places = createPlaces();
+    const onSave = vi.fn();
+    const onDiscard = vi.fn();
+
+    render(<SwipeDeck places={places} onSave={onSave} onDiscard={onDiscard} />);
+
+    expect(screen.getAllByText(places[0].name)[0]).toBeDefined();
+    const discardButton = screen.getAllByLabelText("Discard");
+    expect(discardButton[0]).toBeDefined()
+    fireEvent.click(discardButton[0]);
+
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+    expect(onDiscard).toHaveBeenCalledWith(places[0]);
+    await screen.findAllByText(places[1].name);
+    expect(onSave).not.toHaveBeenCalled();
   });
 
 
