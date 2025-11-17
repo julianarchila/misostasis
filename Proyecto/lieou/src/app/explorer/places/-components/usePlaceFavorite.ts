@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function usePlaceFavorite(_placeId: string) {
   const [isFavorite, setIsFavorite] = useState(false);
 

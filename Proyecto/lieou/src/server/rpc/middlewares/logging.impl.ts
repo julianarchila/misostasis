@@ -1,4 +1,4 @@
-import { Effect, Layer, Cause } from "effect"
+import { Effect, Layer } from "effect"
 import { RpcLoggingMiddleware } from "./logging"
 
 /**
@@ -15,10 +15,11 @@ export const RpcLoggingMiddlewareLive: Layer.Layer<RpcLoggingMiddleware> = Layer
         const duration = Date.now() - startTime
         yield* Effect.log(`[RPC] ✓ ${rpc._tag} (${duration}ms)`)
       })),
-      Effect.tapError((error) => Effect.gen(function* () {
-        const duration = Date.now() - startTime
-        yield* Effect.logError(`[RPC] ✗ ${rpc._tag} x ${(error as any)?._tag ?? "internal error"} (${duration}ms)`)
-      }))
+       Effect.tapError((error) => Effect.gen(function* () {
+         const duration = Date.now() - startTime
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         yield* Effect.logError(`[RPC] ✗ ${rpc._tag} x ${(error as any)?._tag ?? "internal error"} (${duration}ms)`)
+       }))
     )
   })
 )

@@ -22,9 +22,13 @@ vi.mock("next/navigation", () => {
 
 vi.mock("@clerk/nextjs", () => {
   let signedIn = false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const SignedIn = ({ children }: any) => (signedIn ? <>{children}</> : null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const SignedOut = ({ children }: any) => (signedIn ? null : <>{children}</>);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const SignInButton = ({ children }: any) => <span>{children ?? "Sign In"}</span>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const SignUpButton = ({ children }: any) => <span>{children ?? "Sign Up"}</span>;
   const UserButton = () => <button data-testid="user">User</button>;
   return {
@@ -43,10 +47,12 @@ vi.mock("../ExplorerNav", () => ({ ExplorerNav: () => <nav /> }));
 
 
 function setPathname(p: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (nav as any).__setPathname(p);
 }
 
 function setSignedIn(v: boolean) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (clerk as any).__setSignedIn(v);
 }
 

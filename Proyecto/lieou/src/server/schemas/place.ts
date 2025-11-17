@@ -4,6 +4,7 @@ import { Schema } from "effect"
 // Primitives
 // ============================================================================
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const NullableString = Schema.NullOr(Schema.String)
 const NullableDate = Schema.NullOr(Schema.Date)
 
