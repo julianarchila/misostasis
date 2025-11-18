@@ -48,5 +48,3 @@ export const mockPlaces: Place[] = [
       "Cocktails with panoramic city views. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia.",
   },
 ]
-
-

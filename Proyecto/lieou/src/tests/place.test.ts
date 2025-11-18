@@ -139,5 +139,3 @@ test("delete removes a place and returns the deleted record", async () => {
   expect(deleted?.id).toBeDefined()
   expect(afterDelete).toBeNull()
 })
-
-
