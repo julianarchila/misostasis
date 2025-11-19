@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import type { Place } from "@/server/schemas/place";
+import Link from "next/link";
 
 interface PlacesListUIProps {
   places?: readonly Place[];
@@ -79,7 +80,7 @@ export function PlacesListUI({ places, isLoading, error }: PlacesListUIProps) {
                     {p.description || "No description"}
                   </div>
                   <Button asChild variant="outline" className="h-8 px-2 flex-shrink-0">
-                    <a href={`/business/places/${p.id}`}>View</a>
+                    <Link href={`/business/places/${p.id}`}>View</Link>
                   </Button>
                 </div>
               </div>
