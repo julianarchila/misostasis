@@ -1,7 +1,7 @@
 import { Effect } from "effect"
 import * as EArray from "effect/Array"
 import { eq } from "drizzle-orm"
-import { place as placeTable } from "@/server/db/schema"
+import { place as placeTable, place_image as placeImageTable } from "@/server/db/schema"
 import { DB } from "@/server/db/service"
 import type {
   Place,
@@ -19,37 +19,43 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
         create: (payload: CreatePlacePayload & { business_id: number }) =>
           Effect.gen(function* () {
             return yield* DBQuery((db) =>
-              db.insert(placeTable).values(payload).returning()
-            ).pipe(
-              Effect.flatMap(EArray.head),
-              Effect.catchTags({
-                NoSuchElementException: () => Effect.die("Failed to create place"),
-              }),
+              db.transaction(async (tx) => {
+                const { images, ...placeData } = payload
+                const [place] = await tx.insert(placeTable).values(placeData).returning()
+                
+                if (!place) throw new Error("Failed to create place")
+
+                let insertedImages: any[] = [] // simplified type for now to avoid complexity with inference
+                if (images && images.length > 0) {
+                   insertedImages = await tx.insert(placeImageTable).values(
+                     images.map(url => ({ place_id: place.id, url }))
+                   ).returning()
+                }
+                
+                return { ...place, images: insertedImages }
+              })
             )
           }),
 
         findById: (id: number) =>
           Effect.gen(function* () {
             return yield* DBQuery((db) =>
-              db
-                .select()
-                .from(placeTable)
-                .where(eq(placeTable.id, id))
+              db.query.place.findFirst({
+                where: eq(placeTable.id, id),
+                with: { images: true }
+              })
             ).pipe(
-              Effect.flatMap(EArray.head),
-              Effect.catchTags({
-                NoSuchElementException: () => Effect.succeed<Place | null>(null),
-              }),
+              Effect.map(res => res ?? null)
             )
           }),
 
         findByBusinessId: (businessId: number) =>
           Effect.gen(function* () {
             return yield* DBQuery((db) =>
-              db
-                .select()
-                .from(placeTable)
-                .where(eq(placeTable.business_id, businessId))
+              db.query.place.findMany({
+                where: eq(placeTable.business_id, businessId),
+                with: { images: true }
+              })
             )
           }),
 

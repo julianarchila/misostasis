@@ -10,13 +10,16 @@ export function useCreatePlaceForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { mutate: createPlace, isPending } = useMutation({
+  const { mutate: createPlace, isPending: isCreatingPlace } = useMutation({
     ...createPlaceOptions,
     throwOnError: false,
     onError: (error) => {
       error.match({
         Unauthenticated: () => {
           toast.error("You must be logged in to create a place.");
+        },
+        UploadError: (e) => {
+          toast.error(`Image upload failed: ${e.props.message}`);
         },
         OrElse: () => {
           toast.error("Failed to create place. Please try again.");
@@ -33,23 +36,33 @@ export function useCreatePlaceForm() {
     },
   });
 
+  // Schema that allows files in the form state
+  const FormValidator = CreatePlaceFormSchema.pipe(
+      Schema.omit("images"), 
+      Schema.extend(Schema.Struct({
+          files: Schema.mutable(Schema.Array(Schema.Any))
+      }))
+  );
+
   const form = useForm({
     defaultValues: {
       name: "",
       description: null as string | null,
       location: null as string | null,
+      files: [] as File[],
     },
     validators: {
-      onSubmit: Schema.standardSchemaV1(CreatePlaceFormSchema),
+      onSubmit: Schema.standardSchemaV1(FormValidator),
     },
     onSubmit: async ({ value }) => {
       createPlace({
         name: value.name,
         description: value.description || null,
         location: value.location || null,
+        files: value.files
       });
     },
   });
 
-  return { form, isPending };
+  return { form, isPending: isCreatingPlace || form.state.isSubmitting };
 }
