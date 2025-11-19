@@ -3,19 +3,19 @@ import { Schema } from "effect"
 import { AuthMiddleware } from "@/server/rpc/middlewares/auth"
 import { Unauthenticated } from "@/server/schemas/error"
 
-export const UploadImageResponse = Schema.Struct({
+export const PresignedUrlResponse = Schema.Struct({
+  uploadUrl: Schema.String,
   publicUrl: Schema.String,
   key: Schema.String
 })
 
 export class StorageRpcs extends RpcGroup.make(
-  Rpc.make("UploadImage", {
+  Rpc.make("GetPresignedUrl", {
     payload: Schema.Struct({
         filename: Schema.String,
-        contentType: Schema.String,
-        data: Schema.String // base64 encoded file data
+        contentType: Schema.String
     }),
     error: Unauthenticated,
-    success: UploadImageResponse
+    success: PresignedUrlResponse
   })
 ).prefix("Storage").middleware(AuthMiddleware) { }

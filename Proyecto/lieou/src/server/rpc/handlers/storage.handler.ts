@@ -7,8 +7,13 @@ export const StorageHandlersLive = StorageRpcs.toLayer(
     const storageService = yield* StorageService
 
     return {
-      StorageUploadImage: ({ filename, contentType, data }: { filename: string; contentType: string; data: string }) => Effect.gen(function*(){
-          return yield* storageService.uploadImage({ filename, contentType, data }).pipe(Effect.orDie)
+      StorageGetPresignedUrl: ({ filename, contentType }: { filename: string; contentType: string }) => Effect.gen(function*(){
+          // Generate a unique key
+          const key = `places/${crypto.randomUUID()}-${filename}`
+          const uploadUrl = yield* storageService.getPresignedUploadUrl(key, contentType).pipe(Effect.orDie)
+          const publicUrl = storageService.getPublicUrl(key)
+          
+          return { uploadUrl, publicUrl, key }
       })
     }
   })

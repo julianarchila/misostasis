@@ -28,27 +28,20 @@ export const createPlaceOptions = eq.mutationOptions({
 
     if (input.files && input.files.length > 0) {
       imageUrls = yield* Effect.forEach(input.files, (file) => Effect.gen(function*() {
-        // Read file as base64
-        const base64 = yield* Effect.tryPromise({
-            try: () => {
-              return new Promise<string>((resolve, reject) => {
-                const reader = new FileReader()
-                reader.onload = () => resolve(reader.result as string)
-                reader.onerror = () => reject(new Error(`Failed to read file ${file.name}`))
-                reader.readAsDataURL(file)
-              })
-            },
-            catch: (error) => new UploadError({ message: `Failed to read file ${file.name}`, cause: error })
-        })
-        
-        // Extract base64 data (remove data URI prefix)
-        const base64Data = base64.split(',')[1]
-
-        // Upload through backend
-        const { publicUrl } = yield* rpcClient.StorageUploadImage({
+        // Get presigned URL
+        const { uploadUrl, publicUrl } = yield* rpcClient.StorageGetPresignedUrl({
             filename: file.name,
-            contentType: file.type,
-            data: base64Data
+            contentType: file.type
+        })
+
+        // Upload file to R2
+        yield* Effect.tryPromise({
+            try: () => fetch(uploadUrl, {
+                method: "PUT",
+                body: file,
+                headers: { "Content-Type": file.type }
+            }),
+            catch: (error) => new UploadError({ message: `Failed to upload image ${file.name}`, cause: error })
         })
 
         return publicUrl

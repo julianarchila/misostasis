@@ -1,5 +1,6 @@
 import { Effect } from "effect"
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
 export class StorageService extends Effect.Service<StorageService>()(
   "StorageService",
@@ -37,30 +38,26 @@ export class StorageService extends Effect.Service<StorageService>()(
       }
 
       return {
-        uploadImage: (input: { filename: string; contentType: string; data: string }) => Effect.gen(function* () {
+        getPresignedUploadUrl: (key: string, contentType: string) => Effect.gen(function* () {
             if (!bucketName) return yield* Effect.die("Missing R2_BUCKET_NAME")
             
             const client = getClient()
-            const key = `places/${crypto.randomUUID()}-${input.filename}`
-            
-            // Convert base64 to Buffer
-            const buffer = Buffer.from(input.data, 'base64')
-            
-            yield* Effect.tryPromise({
-                try: () => client.send(new PutObjectCommand({
-                    Bucket: bucketName,
-                    Key: key,
-                    Body: buffer,
-                    ContentType: input.contentType,
-                })),
-                catch: (error) => new Error(`Failed to upload image: ${error}`)
+            const command = new PutObjectCommand({
+                Bucket: bucketName,
+                Key: key,
+                ContentType: contentType,
             })
-            
-            return {
-                publicUrl: publicUrl ? `${publicUrl}/${key}` : "",
-                key
-            }
-        })
+
+            return yield* Effect.tryPromise({
+                try: () => getSignedUrl(client, command, { expiresIn: 3600 }),
+                catch: (error) => new Error(`Failed to generate presigned URL: ${error}`)
+            })
+        }),
+        
+        getPublicUrl: (key: string) => {
+            if (!publicUrl) throw new Error("Missing R2_PUBLIC_URL")
+            return `${publicUrl}/${key}`
+        }
       }
     }),
     dependencies: [],
