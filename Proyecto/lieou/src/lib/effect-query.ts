@@ -28,5 +28,3 @@ export const LiveLayer = MyRpcClient.Default.pipe(
 );
 
 export const eq = createEffectQuery(LiveLayer);
-
-
