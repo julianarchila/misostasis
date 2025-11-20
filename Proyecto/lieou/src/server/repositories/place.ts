@@ -16,79 +16,66 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
       const { DBQuery } = yield* DB
 
       return {
-        create: (payload: CreatePlacePayload & { business_id: number }) =>
-          Effect.gen(function* () {
-            return yield* DBQuery((db) =>
-              db.transaction(async (tx) => {
-                const { images, ...placeData } = payload
-                const [place] = await tx.insert(placeTable).values(placeData).returning()
-                
-                if (!place) throw new Error("Failed to create place")
+        create: (payload: CreatePlacePayload & { business_id: number }) => DBQuery((db) =>
+          db.transaction(async (tx) => {
+            const { images, ...placeData } = payload
+            const [place] = await tx.insert(placeTable).values(placeData).returning()
 
-                let insertedImages: any[] = [] // simplified type for now to avoid complexity with inference
-                if (images && images.length > 0) {
-                   insertedImages = await tx.insert(placeImageTable).values(
-                     images.map(url => ({ place_id: place.id, url }))
-                   ).returning()
-                }
-                
-                return { ...place, images: insertedImages }
-              })
-            )
-          }),
+            if (!place) throw new Error("Failed to create place")
 
-        findById: (id: number) =>
-          Effect.gen(function* () {
-            return yield* DBQuery((db) =>
-              db.query.place.findFirst({
-                where: eq(placeTable.id, id),
-                with: { images: true }
-              })
-            ).pipe(
-              Effect.map(res => res ?? null)
-            )
-          }),
+            if (!images || images.length === 0) {
+              return { ...place, images: [] }
+            }
 
-        findByBusinessId: (businessId: number) =>
-          Effect.gen(function* () {
-            return yield* DBQuery((db) =>
-              db.query.place.findMany({
-                where: eq(placeTable.business_id, businessId),
-                with: { images: true }
-              })
-            )
-          }),
+            const insertedImages = await tx.insert(placeImageTable).values(
+              images.map(url => ({ place_id: place.id, url }))
+            ).returning()
 
-        update: (id: number, payload: UpdatePlacePayload) =>
-          Effect.gen(function* () {
-            return yield* DBQuery((db) =>
-              db
-                .update(placeTable)
-                .set(payload)
-                .where(eq(placeTable.id, id))
-                .returning()
-            ).pipe(
-              Effect.flatMap(EArray.head),
-              Effect.catchTags({
-                NoSuchElementException: () => Effect.die("Failed to update place"),
-              }),
-            )
-          }),
+            return { ...place, images: insertedImages }
+          })
+        )
+        ,
 
-        delete: (id: number) =>
-          Effect.gen(function* () {
-            return yield* DBQuery((db) =>
-              db
-                .delete(placeTable)
-                .where(eq(placeTable.id, id))
-                .returning()
-            ).pipe(
-              Effect.flatMap(EArray.head),
-              Effect.catchTags({
-                NoSuchElementException: () => Effect.succeed<Place | null>(null),
-              }),
-            )
+        findById: (id: number) => DBQuery((db) =>
+          db.query.place.findFirst({
+            where: eq(placeTable.id, id),
+            with: { images: true }
+          })
+        ).pipe(
+          Effect.map(res => res ?? null)
+        ),
+
+        findByBusinessId: (businessId: number) => DBQuery((db) =>
+          db.query.place.findMany({
+            where: eq(placeTable.business_id, businessId),
+            with: { images: true }
+          })
+        ),
+
+        update: (id: number, payload: UpdatePlacePayload) => DBQuery((db) =>
+          db
+            .update(placeTable)
+            .set(payload)
+            .where(eq(placeTable.id, id))
+            .returning()
+        ).pipe(
+          Effect.flatMap(EArray.head),
+          Effect.catchTags({
+            NoSuchElementException: () => Effect.die("Failed to update place"),
           }),
+        ),
+
+        delete: (id: number) => DBQuery((db) =>
+          db
+            .delete(placeTable)
+            .where(eq(placeTable.id, id))
+            .returning()
+        ).pipe(
+          Effect.flatMap(EArray.head),
+          Effect.catchTags({
+            NoSuchElementException: () => Effect.succeed<Place | null>(null),
+          }),
+        )
       }
     }),
     dependencies: [DB.Default],

@@ -19,3 +19,9 @@ export class DatabaseError extends Data.TaggedError("DatabaseError")<{
   message?: string
 }> {}
 
+
+
+export class StorageError extends Data.TaggedError("StorageError")<{
+  cause?: unknown
+  message?: string
+}> {}

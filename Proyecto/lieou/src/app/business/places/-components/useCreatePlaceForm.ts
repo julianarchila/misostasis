@@ -19,7 +19,7 @@ export function useCreatePlaceForm() {
           toast.error("You must be logged in to create a place.");
         },
         UploadError: (e) => {
-          toast.error(`Image upload failed: ${e.props.message}`);
+          toast.error(`Failed to upload image: ${e.fileName}`);
         },
         OrElse: () => {
           toast.error("Failed to create place. Please try again.");
