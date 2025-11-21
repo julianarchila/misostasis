@@ -1,3 +1,10 @@
+/** @vitest-environment jsdom */
+
+import { describe, it, expect } from "vitest";
+import * as matchers from "@testing-library/jest-dom/matchers";
+
+expect.extend(matchers);
+
 import { render, screen } from "@testing-library/react";
 import { PlacesListUI } from "./PlacesListUI";
 import type { Place } from "@/server/schemas/place";
@@ -11,7 +18,9 @@ describe("PlacesListUI", () => {
   it("shows error message when error is provided", () => {
     const error = new Error("Test error");
     render(<PlacesListUI isLoading={false} error={error} places={undefined} />);
-    expect(screen.getByText("Error loading places: Test error")).toBeInTheDocument();
+    expect(
+      screen.getByText("Error loading places: Test error")
+    ).toBeInTheDocument();
   });
 
   it("shows message when there are no places", () => {
@@ -25,19 +34,19 @@ describe("PlacesListUI", () => {
     const places: Place[] = [
       {
         id: 1,
+        business_id: 101,
         name: "Test Place",
         description: "A cool description",
         location: "Bogotá",
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        created_at: new Date(),
       },
       {
         id: 2,
+        business_id: 101,
         name: "Another Place",
         description: null,
         location: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        created_at: new Date(),
       },
     ];
 
