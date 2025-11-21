@@ -1,53 +1,70 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { mockPlaces } from "@/lib/mockPlaces";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { getPlaceByIdOptions } from "@/data-access/places";
+import { PlaceDetailUI } from "./-components/PlaceDetailUI";
 
 export default function BusinessPlaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
   const { id } = React.use(params);
-  const place = mockPlaces.find((p) => p.id === id);
+  const placeId = parseInt(id, 10);
 
-  if (!place) {
-    return <div className="text-sm text-neutral-600">This is a mock page. Try another place.</div>;
+  const { data: place, isLoading, error } = useQuery(getPlaceByIdOptions(placeId));
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="mx-auto w-full">
+        <div className="relative h-[42svh] w-full bg-neutral-100 animate-pulse" />
+        <div className="py-4 space-y-3">
+          <div className="h-6 bg-neutral-100 rounded animate-pulse w-1/3" />
+          <div className="h-4 bg-neutral-100 rounded animate-pulse w-full" />
+        </div>
+      </div>
+    );
   }
 
-  return (
-    <div className="mx-auto w-full">
-      <div className="relative h-[42svh] w-full bg-neutral-100">
-        <Image
-          src={place.photoUrl}
-          alt={place.name}
-          fill
-          sizes="(max-width: 768px) 100vw, 1024px"
-          className="object-cover"
-          priority
-        />
-      </div>
+  // Handle error state with typed error matching
+  if (error) {
+    let errorMessage = "An unexpected error occurred";
+    let errorTitle = "Error";
 
-      <div className="py-4">
-        <div className="mb-2 flex items-center gap-2">
-          <Badge variant="secondary" className="bg-neutral-100 text-neutral-700">
-            {place.category}
-          </Badge>
-        </div>
-        <h1 className="text-xl font-semibold">{place.name}</h1>
-        <p className="mt-2 text-sm text-neutral-600">{place.description}</p>
+    error.match({
+      Unauthenticated: () => {
+        errorTitle = "Authentication Required";
+        errorMessage = "You must be logged in to view this place. Please sign in and try again.";
+      },
+      PlaceNotFound: () => {
+        errorTitle = "Place Not Found";
+        errorMessage = "This place doesn't exist or you don't have permission to view it.";
+      },
+      OrElse: () => {
+        errorTitle = "Error Loading Place";
+        errorMessage = "Failed to load place details. Please try again later.";
+      },
+    });
 
-        <div className="mt-6 flex items-center gap-2">
-          <Button variant="outline" disabled>
-            Edit (coming soon)
+    return (
+      <div className="mx-auto w-full max-w-md py-12 text-center">
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-neutral-900">{errorTitle}</h2>
+          <p className="text-sm text-neutral-600">{errorMessage}</p>
+          <Button onClick={() => router.back()} className="mt-4">
+            Go back
           </Button>
-          <Button variant="destructive" disabled>
-            Unpublish
-          </Button>
-          <div className="ml-auto" />
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // TypeScript narrowing - shouldn't happen at runtime
+  if (!place) {
+    return null;
+  }
+
+  // Render success state
+  return <PlaceDetailUI place={place} />;
 }
-
-

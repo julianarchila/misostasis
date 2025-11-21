@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PlaceFormActions } from "./PlaceFormActions";
 import { useCreatePlaceForm } from "./useCreatePlaceForm";
+import { ImageUpload } from "./ImageUpload";
 
 export function PlaceForm() {
   const { form, isPending } = useCreatePlaceForm();
@@ -109,6 +110,23 @@ export function PlaceForm() {
                 </Field>
               );
             }}
+          </form.Field>
+
+          {/* Image Upload Field */}
+          <form.Field name="files">
+            {(field) => (
+              <Field>
+                <FieldLabel>Images</FieldLabel>
+                <ImageUpload
+                  value={field.state.value}
+                  onChange={(files) => field.handleChange(files)}
+                  disabled={isPending}
+                />
+                <FieldDescription>
+                  Upload images of your place
+                </FieldDescription>
+              </Field>
+            )}
           </form.Field>
         </FieldGroup>
       </FieldSet>

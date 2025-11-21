@@ -3,7 +3,7 @@ import { PlaceRepository } from "@/server/repositories/place"
 import { UserRepository } from "@/server/repositories/user"
 import { CreatePlacePayload } from "@/server/schemas/place"
 import { authRequired } from "@/server/utils/auth"
-import { Unauthenticated } from "@/server/schemas/error"
+import { Unauthenticated, PlaceNotFound } from "@/server/schemas/error"
 
 export class PlaceService extends Effect.Service<PlaceService>()(
   "PlaceService",
@@ -47,6 +47,32 @@ export class PlaceService extends Effect.Service<PlaceService>()(
           }
 
           return yield* placeRepo.findByBusinessId(dbUser.id)
+        }),
+
+        getById: (id: number) => Effect.gen(function*(){
+          const currentUser = yield* authRequired
+
+          // Get the database user ID from the Clerk user ID
+          const dbUser = yield* userRepo.findByClerkId(currentUser.user.id)
+          
+          if (!dbUser) {
+            return yield* Effect.fail(new Unauthenticated({ 
+              message: "User not found in database. Please complete onboarding first." 
+            }))
+          }
+
+          const place = yield* placeRepo.findById(id)
+
+          if (!place) {
+            return yield* Effect.fail(new PlaceNotFound({ placeId: id }))
+          }
+
+          // Verify the place belongs to the current user
+          if (place.business_id !== dbUser.id) {
+            return yield* Effect.fail(new PlaceNotFound({ placeId: id }))
+          }
+
+          return place
         })
       }
 

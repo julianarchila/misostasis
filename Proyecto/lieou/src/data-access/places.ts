@@ -1,5 +1,5 @@
 import { eq, MyRpcClient } from "@/lib/effect-query";
-import { Effect } from "effect";
+import { Data, Effect } from "effect";
 import type { CreatePlacePayload } from "@/server/schemas/place"
 
 /**
@@ -15,14 +15,71 @@ export const getMyPlacesOptions = eq.queryOptions({
 })
 
 /**
+ * Query options for fetching a single place by ID
+ */
+export const getPlaceByIdOptions = (placeId: number) => eq.queryOptions({
+  queryKey: ["places", placeId],
+  queryFn: () =>
+    Effect.gen(function* () {
+      const rpcClient = yield* MyRpcClient
+      return yield* rpcClient.PlaceGetById({ id: placeId })
+    }),
+})
+
+type CreatePlaceInput = Omit<CreatePlacePayload, "images"> & {
+  files?: File[]
+}
+
+
+
+const uploadImage = Effect.fn("uploadImage")(function* (file: File) {
+  const rpcClient = yield* MyRpcClient
+
+  // Get presigned URL
+  const { uploadUrl, publicUrl } = yield* rpcClient.StorageGetPresignedUrl({
+    filename: file.name,
+    contentType: file.type
+  })
+
+  // Upload file to R2
+  yield* Effect.tryPromise({
+    try: () => fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type }
+    }),
+    catch: (error) => new UploadError({ fileName: file.name, cause: error })
+  })
+
+  return publicUrl
+
+})
+
+
+/**
  * Mutation options for creating a new place
  */
 export const createPlaceOptions = eq.mutationOptions({
-  mutationFn: (payload: CreatePlacePayload) => Effect.gen(function* () {
+  mutationFn: (input: CreatePlaceInput) => Effect.gen(function* () {
     const rpcClient = yield* MyRpcClient
+    let imageUrls: string[] = []
 
-    return yield* rpcClient.PlaceCreate(payload)
+    if (input.files && input.files.length > 0) {
+      imageUrls = yield* Effect.forEach(input.files, uploadImage, { concurrency: "unbounded" })
+    }
+
+    return yield* rpcClient.PlaceCreate({
+      name: input.name,
+      description: input.description,
+      location: input.location,
+      images: imageUrls.length > 0 ? imageUrls : undefined
+    })
   })
 })
 
+
+export class UploadError extends Data.TaggedError("UploadError")<{
+  fileName: string
+  cause: unknown
+}> { }
 

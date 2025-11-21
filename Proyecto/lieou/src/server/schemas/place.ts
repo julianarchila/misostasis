@@ -43,6 +43,12 @@ const PlaceLocationValidation = Schema.NullOr(
 // Entity Schemas
 // ============================================================================
 
+export const PlaceImageSchema = Schema.Struct({
+  id: Schema.Number,
+  place_id: Schema.Number,
+  url: Schema.String
+})
+
 /**
  * Complete Place entity schema (database representation)
  */
@@ -53,6 +59,7 @@ export const PlaceSchema = Schema.Struct({
   description: PlaceDescriptionValidation,
   location: PlaceLocationValidation,
   created_at: NullableDate,
+  images: Schema.optional(Schema.Array(PlaceImageSchema))
 })
 
 // ============================================================================
@@ -68,6 +75,7 @@ export const CreatePlaceFormSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: PlaceDescriptionValidation,
   location: PlaceLocationValidation,
+  images: Schema.optional(Schema.Array(Schema.String))
 })
 
 /**
@@ -78,6 +86,7 @@ export const UpdatePlaceFormSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: PlaceDescriptionValidation,
   location: PlaceLocationValidation,
+  images: Schema.optional(Schema.Array(Schema.String))
 })
 
 // ============================================================================
@@ -92,6 +101,7 @@ export const CreatePlacePayloadSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: Schema.optional(PlaceDescriptionValidation),
   location: Schema.optional(PlaceLocationValidation),
+  images: Schema.optional(Schema.Array(Schema.String))
 })
 
 /**
@@ -102,6 +112,7 @@ export const UpdatePlacePayloadSchema = Schema.Struct({
   name: Schema.optional(PlaceNameValidation),
   description: Schema.optional(PlaceDescriptionValidation),
   location: Schema.optional(PlaceLocationValidation),
+  images: Schema.optional(Schema.Array(Schema.String))
 })
 
 // ============================================================================

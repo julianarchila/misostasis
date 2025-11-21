@@ -13,19 +13,8 @@ afterEach(() => {
 });
 
 describe("PlacesListUI", () => {
-  it("shows loading skeleton when isLoading = true", () => {
-    render(<PlacesListUI isLoading={true} error={null} places={undefined} />);
-    expect(screen.getAllByRole("status")).toHaveLength(3);
-  });
-
-  it("shows error message when error is provided", () => {
-    const error = new Error("Test error");
-    render(<PlacesListUI isLoading={false} error={error} places={undefined} />);
-    expect(screen.getByText("Error loading places: Test error")).toBeDefined();
-  });
-
   it("shows message when there are no places", () => {
-    render(<PlacesListUI isLoading={false} error={null} places={[]} />);
+    render(<PlacesListUI places={[]} />);
     expect(
       screen.getByText("No places yet. Create your first place!")
     ).toBeDefined();
@@ -51,7 +40,7 @@ describe("PlacesListUI", () => {
       },
     ];
 
-    render(<PlacesListUI isLoading={false} error={null} places={places} />);
+    render(<PlacesListUI places={places} />);
 
     // Names
     expect(screen.getByText("Test Place")).toBeDefined();
@@ -69,5 +58,45 @@ describe("PlacesListUI", () => {
     expect(links).toHaveLength(2);
     expect(links[0].getAttribute("href")).toBe("/business/places/1");
     expect(links[1].getAttribute("href")).toBe("/business/places/2");
+  });
+
+  it("renders images when available and fallback when missing", () => {
+    const places: Place[] = [
+      {
+        id: 1,
+        business_id: 101,
+        name: "Place with Image",
+        description: "Has an image",
+        location: "Bogotá",
+        created_at: new Date(),
+        images: [
+          {
+            id: 1,
+            place_id: 1,
+            url: "https://example.com/image.jpg",
+          },
+        ],
+      },
+      {
+        id: 2,
+        business_id: 101,
+        name: "Place without Image",
+        description: "No images",
+        location: null,
+        created_at: new Date(),
+        images: [],
+      },
+    ];
+
+    render(<PlacesListUI places={places} />);
+
+    // Check that the image is rendered with correct src
+    const images = screen.getAllByRole("img");
+    expect(images).toHaveLength(1);
+    expect(images[0].getAttribute("alt")).toBe("Place with Image");
+    expect(images[0].getAttribute("src")).toContain("example.com");
+
+    // Check that the "No image" fallback is shown
+    expect(screen.getByText("No image")).toBeDefined();
   });
 });

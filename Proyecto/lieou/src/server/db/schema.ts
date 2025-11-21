@@ -1,4 +1,5 @@
 import { pgTable, serial, text, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 export const todo = pgTable("todo", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
@@ -37,7 +38,7 @@ export const place = pgTable("place", {
 
 export const place_image = pgTable("place_image", {
   id: serial("id").primaryKey(),
-  place_id: integer("place_id").references(() => place.id),
+  place_id: integer("place_id").references(() => place.id).notNull(),
   url: text("url").notNull(),
 });
 
@@ -60,3 +61,14 @@ export const favorite = pgTable("favorite", {
   place_id: integer("place_id").references(() => place.id),
   created_at: timestamp("created_at").defaultNow(),
 });
+
+export const placeRelations = relations(place, ({ many }) => ({
+  images: many(place_image),
+}));
+
+export const placeImageRelations = relations(place_image, ({ one }) => ({
+  place: one(place, {
+    fields: [place_image.place_id],
+    references: [place.id],
+  }),
+}));
