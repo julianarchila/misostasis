@@ -10,5 +10,3 @@ export async function getRole(): Promise<Roles | undefined> {
   const { sessionClaims } = await auth()
   return sessionClaims?.metadata?.role as Roles | undefined
 }
-
-
