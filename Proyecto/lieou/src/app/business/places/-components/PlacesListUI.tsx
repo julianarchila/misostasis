@@ -6,39 +6,11 @@ import type { Place } from "@/server/schemas/place";
 import Link from "next/link";
 
 interface PlacesListUIProps {
-  places?: readonly Place[];
-  isLoading: boolean;
-  error: Error | null;
+  places: readonly Place[];
 }
 
-export function PlacesListUI({ places, isLoading, error }: PlacesListUIProps) {
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="h-40 w-full bg-neutral-100 animate-pulse" />
-              <div className="p-3 space-y-2">
-                <div className="h-4 bg-neutral-100 rounded animate-pulse w-3/4" />
-                <div className="h-3 bg-neutral-100 rounded animate-pulse w-1/2" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-500">Error loading places: {error.message}</p>
-      </div>
-    );
-  }
-
-  if (!places || places.length === 0) {
+export function PlacesListUI({ places }: PlacesListUIProps) {
+  if (places.length === 0) {
     return (
       <div className="text-center py-8">
         <p className="text-neutral-500">No places yet. Create your first place!</p>
