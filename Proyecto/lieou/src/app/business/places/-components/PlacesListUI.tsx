@@ -14,7 +14,7 @@ export function PlacesListUI({ places, isLoading, error }: PlacesListUIProps) {
     return (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="overflow-hidden">
+          <Card key={i} className="overflow-hidden" role="status">
             <CardContent className="p-0">
               <div className="h-40 w-full bg-neutral-100 animate-pulse" />
               <div className="p-3 space-y-2">

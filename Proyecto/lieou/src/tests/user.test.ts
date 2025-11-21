@@ -23,4 +23,3 @@ test("should create a new todo with correct default values", async () => {
   expect(result.role).toBe("explorer")
   expect(result.email).toBe("fake@email.com")
 })
-
