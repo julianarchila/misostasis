@@ -14,6 +14,18 @@ export const getMyPlacesOptions = eq.queryOptions({
     }),
 })
 
+/**
+ * Query options for fetching a single place by ID
+ */
+export const getPlaceByIdOptions = (placeId: number) => eq.queryOptions({
+  queryKey: ["places", placeId],
+  queryFn: () =>
+    Effect.gen(function* () {
+      const rpcClient = yield* MyRpcClient
+      return yield* rpcClient.PlaceGetById({ id: placeId })
+    }),
+})
+
 type CreatePlaceInput = Omit<CreatePlacePayload, "images"> & {
   files?: File[]
 }
