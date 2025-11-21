@@ -1,13 +1,16 @@
-/** @vitest-environment jsdom */
+/**
+ * @vitest-environment jsdom
+ */
 
-import { describe, it, expect } from "vitest";
-import * as matchers from "@testing-library/jest-dom/matchers";
-
-expect.extend(matchers);
-
-import { render, screen } from "@testing-library/react";
+import * as React from "react";
+import { render, screen, cleanup } from "@testing-library/react";
+import { describe, it, expect, afterEach } from "vitest";
 import { PlacesListUI } from "./PlacesListUI";
 import type { Place } from "@/server/schemas/place";
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("PlacesListUI", () => {
   it("shows loading skeleton when isLoading = true", () => {
@@ -18,16 +21,14 @@ describe("PlacesListUI", () => {
   it("shows error message when error is provided", () => {
     const error = new Error("Test error");
     render(<PlacesListUI isLoading={false} error={error} places={undefined} />);
-    expect(
-      screen.getByText("Error loading places: Test error")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Error loading places: Test error")).toBeDefined();
   });
 
   it("shows message when there are no places", () => {
     render(<PlacesListUI isLoading={false} error={null} places={[]} />);
     expect(
       screen.getByText("No places yet. Create your first place!")
-    ).toBeInTheDocument();
+    ).toBeDefined();
   });
 
   it("renders places when provided", () => {
@@ -53,20 +54,20 @@ describe("PlacesListUI", () => {
     render(<PlacesListUI isLoading={false} error={null} places={places} />);
 
     // Names
-    expect(screen.getByText("Test Place")).toBeInTheDocument();
-    expect(screen.getByText("Another Place")).toBeInTheDocument();
+    expect(screen.getByText("Test Place")).toBeDefined();
+    expect(screen.getByText("Another Place")).toBeDefined();
 
     // Descriptions
-    expect(screen.getByText("A cool description")).toBeInTheDocument();
-    expect(screen.getByText("No description")).toBeInTheDocument();
+    expect(screen.getByText("A cool description")).toBeDefined();
+    expect(screen.getByText("No description")).toBeDefined();
 
     // Locations
-    expect(screen.getByText("Bogotá")).toBeInTheDocument();
+    expect(screen.getByText("Bogotá")).toBeDefined();
 
     // 2 view links
     const links = screen.getAllByRole("link", { name: "View" });
     expect(links).toHaveLength(2);
-    expect(links[0]).toHaveAttribute("href", "/business/places/1");
-    expect(links[1]).toHaveAttribute("href", "/business/places/2");
+    expect(links[0].getAttribute("href")).toBe("/business/places/1");
+    expect(links[1].getAttribute("href")).toBe("/business/places/2");
   });
 });
