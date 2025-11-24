@@ -30,6 +30,7 @@ export const getPlaceByIdOptions = (placeId: number) => eq.queryOptions({
 
 type CreatePlaceInput = Omit<CreatePlacePayload, "images"> & {
   files?: File[]
+  images?: string[]
 }
 
 
@@ -66,7 +67,10 @@ export const createPlaceOptions = eq.mutationOptions({
     const rpcClient = yield* MyRpcClient
     let imageUrls: string[] = []
 
-    if (input.files && input.files.length > 0) {
+    if (input.images && input.images.length > 0) {
+      // Use provided image URLs directly (e.g., when saving a recommended place)
+      imageUrls = input.images
+    } else if (input.files && input.files.length > 0) {
       imageUrls = yield* Effect.forEach(input.files, uploadImage, { concurrency: "unbounded" })
     }
 
@@ -89,9 +93,24 @@ export const getRecommendedOptions = eq.queryOptions({
   queryFn: () =>
     Effect.gen(function* () {
       const rpcClient = yield* MyRpcClient
-      const places = yield* rpcClient.PlaceGetRecommended()
 
-      const mapped: UiPlace[] = (places as ServerPlace[]).map((p) => ({
+      // Fetch recommended places and the user's own places so we can exclude
+      // any recommended items that the user already saved. We compare by image URL
+      // (the saved flow stores the recommended place's photoUrl as an image URL).
+      const recommended = yield* rpcClient.PlaceGetRecommended()
+      const myPlaces = yield* rpcClient.PlaceGetMyPlaces()
+
+      const myImageUrls = new Set<string>(
+        (myPlaces as ServerPlace[])
+          .flatMap((p) => (p.images && p.images.length > 0 ? p.images.map((i) => i.url) : []))
+      )
+
+      const filtered = (recommended as ServerPlace[]).filter((p) => {
+        const url = p.images && p.images.length > 0 ? p.images[0].url : "/placeholder.png"
+        return !myImageUrls.has(url)
+      })
+
+      const mapped: UiPlace[] = filtered.map((p) => ({
         id: String(p.id),
         name: p.name,
         photoUrl: p.images && p.images.length > 0 ? p.images[0].url : "/placeholder.png",
