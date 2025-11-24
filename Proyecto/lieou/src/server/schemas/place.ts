@@ -49,6 +49,11 @@ export const PlaceImageSchema = Schema.Struct({
   url: Schema.String
 })
 
+export const TagSchema = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String
+})
+
 /**
  * Complete Place entity schema (database representation)
  */
@@ -57,9 +62,11 @@ export const PlaceSchema = Schema.Struct({
   business_id: Schema.Number,
   name: PlaceNameValidation,
   description: PlaceDescriptionValidation,
+  maps_url: Schema.NullOr(Schema.String.pipe(Schema.maxLength(500, { message: () => "Maps link must be at most 500 characters" }))),
   location: PlaceLocationValidation,
   created_at: NullableDate,
-  images: Schema.optional(Schema.Array(PlaceImageSchema))
+  images: Schema.optional(Schema.Array(PlaceImageSchema)),
+  tags: Schema.optional(Schema.Array(TagSchema))
 })
 
 // ============================================================================
@@ -75,6 +82,8 @@ export const CreatePlaceFormSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: PlaceDescriptionValidation,
   location: PlaceLocationValidation,
+  maps_url: Schema.NullOr(Schema.String.pipe(Schema.maxLength(500, { message: () => "Maps link must be at most 500 characters" }))),
+  tag: Schema.NullOr(Schema.String),
   images: Schema.optional(Schema.Array(Schema.String))
 })
 
@@ -86,6 +95,7 @@ export const UpdatePlaceFormSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: PlaceDescriptionValidation,
   location: PlaceLocationValidation,
+  maps_url: Schema.optional(Schema.String.pipe(Schema.maxLength(500, { message: () => "Maps link must be at most 500 characters" }))),
   images: Schema.optional(Schema.Array(Schema.String))
 })
 
@@ -101,6 +111,8 @@ export const CreatePlacePayloadSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: Schema.optional(PlaceDescriptionValidation),
   location: Schema.optional(PlaceLocationValidation),
+  maps_url: Schema.optional(Schema.String.pipe(Schema.maxLength(500, { message: () => "Maps link must be at most 500 characters" }))),
+  tag: Schema.optional(Schema.String),
   images: Schema.optional(Schema.Array(Schema.String))
 })
 
@@ -112,6 +124,7 @@ export const UpdatePlacePayloadSchema = Schema.Struct({
   name: Schema.optional(PlaceNameValidation),
   description: Schema.optional(PlaceDescriptionValidation),
   location: Schema.optional(PlaceLocationValidation),
+  maps_url: Schema.optional(Schema.String.pipe(Schema.maxLength(500, { message: () => "Maps link must be at most 500 characters" }))),
   images: Schema.optional(Schema.Array(Schema.String))
 })
 

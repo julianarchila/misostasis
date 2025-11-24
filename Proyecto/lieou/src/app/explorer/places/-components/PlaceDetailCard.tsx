@@ -45,9 +45,17 @@ export function PlaceDetailCard({ place, isFavorite, onToggleFavorite }: PlaceDe
             <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
             {isFavorite ? "Favorited" : "Add to favorites"}
           </Button>
-          <Button variant="outline">
-            <MapPin className="mr-2 h-4 w-4" />
-            Open in Maps
+          <Button variant="outline" asChild>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                place.name
+              )}`}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <MapPin className="mr-2 h-4 w-4" />
+              Open in Maps
+            </a>
           </Button>
         </div>
 

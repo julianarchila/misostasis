@@ -128,6 +128,50 @@ export function PlaceForm() {
               </Field>
             )}
           </form.Field>
+
+          {/* Google Maps Link Field */}
+          <form.Field name="maps_url">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor="place-maps">Google Maps Link</FieldLabel>
+                <Input
+                  id="place-maps"
+                  name={field.name}
+                  value={field.state.value ?? ""}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="https://maps.app.goo.gl/..."
+                  disabled={isPending}
+                  autoComplete="off"
+                />
+                <FieldDescription>
+                  Optional: paste a Google Maps share link for your place
+                </FieldDescription>
+              </Field>
+            )}
+          </form.Field>
+
+          {/* Tag Field (single) */}
+          <form.Field name="tag">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor="place-tag">Tag</FieldLabel>
+                <Input
+                  id="place-tag"
+                  name={field.name}
+                  value={field.state.value ?? ""}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="e.g. Cafe, Sushi, Bakery"
+                  disabled={isPending}
+                  autoComplete="off"
+                />
+                <FieldDescription>
+                  Optional: add a category/tag for this place
+                </FieldDescription>
+              </Field>
+            )}
+          </form.Field>
         </FieldGroup>
       </FieldSet>
 

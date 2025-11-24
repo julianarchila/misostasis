@@ -50,6 +50,8 @@ export function useCreatePlaceForm() {
       description: null as string | null,
       location: null as string | null,
       files: [] as File[],
+      maps_url: null as string | null,
+      tag: null as string | null,
     },
     validators: {
       onSubmit: Schema.standardSchemaV1(FormValidator),
@@ -59,6 +61,8 @@ export function useCreatePlaceForm() {
         name: value.name,
         description: value.description || null,
         location: value.location || null,
+        maps_url: value.maps_url || undefined,
+        tag: value.tag || undefined,
         files: value.files
       });
     },

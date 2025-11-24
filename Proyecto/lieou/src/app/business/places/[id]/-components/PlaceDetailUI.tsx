@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MapPin } from "lucide-react";
 import type { Place } from "@/server/schemas/place";
 
 interface PlaceDetailUIProps {
@@ -36,9 +37,25 @@ export function PlaceDetailUI({ place }: PlaceDetailUIProps) {
               {place.location}
             </Badge>
           )}
+          {place.tags && place.tags.length > 0 && (
+            <Badge variant="secondary" className="bg-neutral-50 text-neutral-800">
+              {place.tags.map(t => t.name).join(", ")}
+            </Badge>
+          )}
         </div>
         <h1 className="text-xl font-semibold">{place.name}</h1>
         <p className="mt-2 text-sm text-neutral-600">{place.description || "No description"}</p>
+
+        {place.maps_url && (
+          <div className="mt-3">
+            <a href={place.maps_url} target="_blank" rel="noreferrer noopener">
+              <Button variant="outline" className="px-3 py-1">
+                <MapPin className="mr-2 h-4 w-4" />
+                Open in Maps
+              </Button>
+            </a>
+          </div>
+        )}
 
         {place.images && place.images.length > 0 && (
           <div className="mt-6">

@@ -32,6 +32,8 @@ export const place = pgTable("place", {
   business_id: integer("business_id").references(() => user.id).notNull(),
   name: text("name").notNull(),
   description: text("description"),
+  // Optional Google Maps link (e.g. share link)
+  maps_url: text("maps_url"),
   location: text("location"),
   created_at: timestamp("created_at").defaultNow(),
 });
