@@ -52,6 +52,17 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
           })
         ),
 
+        findRecommended: (excludeBusinessId?: number) => DBQuery((db) =>
+          db.query.place.findMany({
+            with: { images: true }
+          })
+        ).pipe(
+          Effect.map(res => {
+            if (!excludeBusinessId) return res
+            return res.filter(p => p.business_id !== excludeBusinessId)
+          })
+        ),
+
         update: (id: number, payload: UpdatePlacePayload) => DBQuery((db) =>
           db
             .update(placeTable)

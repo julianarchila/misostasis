@@ -1,6 +1,8 @@
 import { eq, MyRpcClient } from "@/lib/effect-query";
 import { Data, Effect } from "effect";
 import type { CreatePlacePayload } from "@/server/schemas/place"
+import { type Place as UiPlace } from "@/lib/mockPlaces";
+import type { Place as ServerPlace } from "@/server/schemas/place";
 
 /**
  * Query options for fetching user's places
@@ -75,6 +77,30 @@ export const createPlaceOptions = eq.mutationOptions({
       images: imageUrls.length > 0 ? imageUrls : undefined
     })
   })
+})
+
+
+/**
+ * Query options for fetching recommended places (explorer)
+ * Returns UI-friendly `Place[]` (ids as strings, photoUrl, category)
+ */
+export const getRecommendedOptions = eq.queryOptions({
+  queryKey: ["places", "recommended"],
+  queryFn: () =>
+    Effect.gen(function* () {
+      const rpcClient = yield* MyRpcClient
+      const places = yield* rpcClient.PlaceGetRecommended()
+
+      const mapped: UiPlace[] = (places as ServerPlace[]).map((p) => ({
+        id: String(p.id),
+        name: p.name,
+        photoUrl: p.images && p.images.length > 0 ? p.images[0].url : "/placeholder.png",
+        category: "Other",
+        description: p.description ?? "",
+      }))
+
+      return mapped
+    }),
 })
 
 
