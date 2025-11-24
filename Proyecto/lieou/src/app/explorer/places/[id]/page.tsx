@@ -1,18 +1,30 @@
 "use client";
 
 import * as React from "react";
-import { mockPlaces } from "@/lib/mockPlaces";
+import { useQuery } from "@tanstack/react-query";
+import { getPlaceByIdOptions } from "@/data-access/places";
 import { PlaceDetailCardContainer } from "../-components/PlaceDetailCardContainer";
+import type { Place as UiPlace } from "@/lib/mockPlaces";
 
 export default function ExplorerPlaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
-  const place = mockPlaces.find((p) => p.id === id);
+  const placeId = Number(id);
 
-  if (!place) {
-    return (
-      <div className="text-sm text-neutral-600">This is a mock page. Try another place.</div>
-    );
+  const { data: serverPlace, isLoading, error } = useQuery(getPlaceByIdOptions(placeId));
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading place</div>;
+  if (!serverPlace) {
+    return <div className="text-sm text-neutral-600">Place not found</div>;
   }
+
+  const place: UiPlace = {
+    id: String(serverPlace.id),
+    name: serverPlace.name,
+    photoUrl: serverPlace.images && serverPlace.images.length > 0 ? serverPlace.images[0].url : "/placeholder.png",
+    category: "Other",
+    description: serverPlace.description ?? "",
+  };
 
   return <PlaceDetailCardContainer place={place} />;
 }
