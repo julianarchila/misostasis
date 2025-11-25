@@ -4,19 +4,26 @@ import { SavedPlacesListContainer } from "./-components/SavedPlacesListContainer
 import { useQuery } from "@tanstack/react-query";
 import { getMyPlacesOptions } from "@/data-access/places";
 import type { Place as UiPlace } from "@/lib/mockPlaces";
+import type { Place } from "@/server/schemas/place";
+
+
+type PlaceWithImages = Place & {
+  images?: { url: string }[];
+};
 
 export default function ExplorerSavedPage() {
   const { data } = useQuery(getMyPlacesOptions);
 
-  const savedPlaces: UiPlace[] = (data ?? []).map((p: any) => ({
+  const placesData = (data as PlaceWithImages[]) ?? [];
+
+  const savedPlaces: UiPlace[] = placesData.map((p) => ({
     id: String(p.id),
     name: p.name,
-    photoUrl: p.images && p.images.length > 0 ? p.images[0].url : "/placeholder.png",
+    
+    photoUrl: p.images?.[0]?.url ?? "/placeholder.png",
     category: "Other",
     description: p.description ?? "",
   }));
 
   return <SavedPlacesListContainer places={savedPlaces} />;
 }
-
-
