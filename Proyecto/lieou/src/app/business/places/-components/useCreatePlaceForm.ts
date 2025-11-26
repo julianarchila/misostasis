@@ -38,10 +38,14 @@ export function useCreatePlaceForm() {
 
   // Schema that allows files in the form state
   const FormValidator = CreatePlaceFormSchema.pipe(
-      Schema.omit("images"), 
-      Schema.extend(Schema.Struct({
-          files: Schema.mutable(Schema.Array(Schema.Any))
-      }))
+      Schema.omit("images"),
+      Schema.extend(
+        Schema.Struct({
+          files: Schema.mutable(Schema.Array(Schema.Any)),
+          maps_url: Schema.NullOr(Schema.String),
+          tag: Schema.NullOr(Schema.String),
+        })
+      )
   );
 
   const form = useForm({
@@ -49,6 +53,8 @@ export function useCreatePlaceForm() {
       name: "",
       description: null as string | null,
       location: null as string | null,
+      maps_url: null as string | null,
+      tag: null as string | null,
       files: [] as File[],
     },
     validators: {

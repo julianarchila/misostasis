@@ -36,7 +36,7 @@ export function PlaceForm() {
                   <Input
                     id="place-name"
                     name={field.name}
-                    value={field.state.value}
+                    value={field.state.value ?? ""}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     aria-invalid={isInvalid}
@@ -124,6 +124,52 @@ export function PlaceForm() {
                 />
                 <FieldDescription>
                   Upload images of your place
+                </FieldDescription>
+              </Field>
+            )}
+          </form.Field>
+          
+          {/* Google Maps Link Field */}
+          <form.Field name="maps_url">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor="place-maps">Google Maps Link</FieldLabel>
+                <Input
+                
+                  id="place-maps"
+                  type="url" 
+                  name={field.name}
+                  value={field.state.value ?? ""}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="https://maps.app.goo.gl/..." 
+                  disabled={isPending}
+                  autoComplete="off"
+                />
+                <FieldDescription>
+                  Opcional: Pega el link de &quot;Compartir&quot; de Google Maps.
+                </FieldDescription>
+              </Field>
+            )}
+          </form.Field>
+
+          {/* Tag Field */}
+          <form.Field name="tag">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor="place-tag">Categoría principal</FieldLabel>
+                <Input
+                  id="place-tag"
+                  name={field.name}
+                  value={field.state.value ?? ""}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="ej. Cafetería"
+                  disabled={isPending}
+                  autoComplete="off"
+                />
+                <FieldDescription>
+                  Opcional: Añade una categoría para este lugar.
                 </FieldDescription>
               </Field>
             )}
