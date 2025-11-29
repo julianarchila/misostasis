@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
+import Image from "next/image"; // 1. Importar el componente Image
 import { ChangeEvent, useRef } from "react";
 
 interface ImageUploadProps {
@@ -59,18 +60,21 @@ export function ImageUpload({ value, onChange, disabled }: ImageUploadProps) {
       {value.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {value.map((file, index) => (
+            /* El contenedor necesita 'relative' para que 'fill' funcione correctamente */
             <div key={`${file.name}-${index}`} className="relative group aspect-square rounded-md overflow-hidden border bg-muted">
-               <img 
+               {/* 2. Reemplazo de <img> por <Image /> */}
+               <Image 
                  src={URL.createObjectURL(file)} 
                  alt="Preview" 
-                 className="object-cover w-full h-full" 
-                 onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
+                 fill
+                 className="object-cover"
+                 unoptimized // 3. Obligatorio para blobs locales
                />
                <Button
                  type="button"
                  variant="destructive"
                  size="icon"
-                 className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                 className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                  onClick={() => removeFile(index)}
                  disabled={disabled}
                >

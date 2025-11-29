@@ -64,11 +64,26 @@ export const favorite = pgTable("favorite", {
 
 export const placeRelations = relations(place, ({ many }) => ({
   images: many(place_image),
+  tags: many(place_tag),
 }));
 
 export const placeImageRelations = relations(place_image, ({ one }) => ({
   place: one(place, {
     fields: [place_image.place_id],
     references: [place.id],
+  }),
+}));
+
+export const tagRelations = relations(tag, ({ many }) => ({
+  placeTags: many(place_tag),
+}));
+export const placeTagRelations = relations(place_tag, ({ one }) => ({
+  place: one(place, {
+    fields: [place_tag.place_id],
+    references: [place.id],
+  }),
+  tag: one(tag, {
+    fields: [place_tag.tag_id],
+    references: [tag.id],
   }),
 }));

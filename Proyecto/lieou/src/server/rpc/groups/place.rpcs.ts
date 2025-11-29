@@ -18,6 +18,11 @@ export class PlaceRpcs extends RpcGroup.make(
     error: Unauthenticated,
     success: Schema.Array(PlaceSchema)
   }),
+  Rpc.make("GetRecommended", {
+    payload: Schema.Void,
+    error: Unauthenticated,
+    success: Schema.Array(PlaceSchema)
+  }),
   Rpc.make("GetById", {
     payload: Schema.Struct({ id: Schema.Number }),
     error: Schema.Union(Unauthenticated, PlaceNotFound),

@@ -11,6 +11,7 @@ export const PlaceHandlersLive = PlaceRpcs.toLayer(
 
     return {
       PlaceCreate: (payload) => placeService.create(payload),
+      PlaceGetRecommended: () => placeService.getRecommended(),
       PlaceGetMyPlaces: () => placeService.getMyPlaces(),
       PlaceGetById: (payload) => placeService.getById(payload.id)
     }
