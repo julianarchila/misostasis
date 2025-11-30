@@ -5,15 +5,20 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, MapPin } from "lucide-react";
-import type { Place } from "@/lib/mockPlaces";
+import type { Place as MockPlace } from "@/lib/mockPlaces";
 
 type PlaceDetailCardProps = {
-  place: Place;
+  place: MockPlace & { location?: string | null };
   isFavorite: boolean;
   onToggleFavorite: () => void;
 };
 
 export function PlaceDetailCard({ place, isFavorite, onToggleFavorite }: PlaceDetailCardProps) {
+  // Prefer the stored `location` (shared maps link) when available.
+  // Otherwise fallback to a Google Maps search for the place name.
+  const mapsHref = place.location
+    ? place.location
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`;
   return (
     <div className="mx-auto w-full">
       <div className="relative h-[48svh] w-full bg-neutral-100">
@@ -45,9 +50,11 @@ export function PlaceDetailCard({ place, isFavorite, onToggleFavorite }: PlaceDe
             <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
             {isFavorite ? "Favorited" : "Add to favorites"}
           </Button>
-          <Button variant="outline">
-            <MapPin className="mr-2 h-4 w-4" />
-            Open in Maps
+          <Button variant="outline" asChild>
+            <a href={mapsHref} target="_blank" rel="noopener noreferrer">
+              <MapPin className="mr-2 h-4 w-4" />
+              Open in Maps
+            </a>
           </Button>
         </div>
 
