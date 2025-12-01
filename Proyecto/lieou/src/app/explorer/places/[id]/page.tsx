@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { FeedCard } from "@/components/FeedCard"
 import { GradientBackground } from "@/components/GradientBackground"
-import { getPlaceByIdOptions } from "@/data-access/places"
+import { getExplorerPlaceByIdOptions } from "@/data-access/explorer"
 import { usePlaceFavorite } from "../-components/usePlaceFavorite"
 import { routes } from "@/lib/routes"
 
@@ -15,7 +15,7 @@ export default function ExplorerPlaceDetailPage({ params }: { params: Promise<{ 
   const { id } = React.use(params)
   const placeId = Number(id)
 
-  const { data: place, isLoading, error } = useQuery(getPlaceByIdOptions(placeId))
+  const { data: place, isLoading, error } = useQuery(getExplorerPlaceByIdOptions(placeId))
   const { isFavorite, toggleFavorite } = usePlaceFavorite(id)
 
   if (isLoading) return <div>Loading...</div>
