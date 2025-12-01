@@ -7,7 +7,7 @@ import { render, screen, fireEvent, cleanup } from "@testing-library/react"
 import { describe, expect, it, vi, afterEach, beforeAll } from "vitest"
 
 import { SwipeDeck } from "../SwipeDeck"
-import type { Place } from "@/server/schemas/place"
+import type { PlaceWithDistance } from "@/server/schemas/place"
 
 // Mock browser APIs for Embla Carousel
 beforeAll(() => {
@@ -52,26 +52,28 @@ beforeAll(() => {
   })
 })
 
-const createPlaces = (): Place[] => [
+const createPlaces = (): PlaceWithDistance[] => [
   {
     id: 1,
     business_id: 1,
     name: "First Place",
     description: "First description",
-    location: "Location 1",
-    maps_url: null,
+    coordinates: { x: -74.0721, y: 4.7110 },
+    address: "Location 1",
     created_at: null,
     images: [{ id: 1, place_id: 1, url: "https://example.com/first.jpg" }],
+    distance_km: 1.5,
   },
   {
     id: 2,
     business_id: 1,
     name: "Second Place",
     description: "Second description",
-    location: "Location 2",
-    maps_url: null,
+    coordinates: { x: -74.0621, y: 4.7210 },
+    address: "Location 2",
     created_at: null,
     images: [{ id: 2, place_id: 2, url: "https://example.com/second.jpg" }],
+    distance_km: 2.3,
   },
 ]
 

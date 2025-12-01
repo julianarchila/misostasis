@@ -111,7 +111,7 @@ export function PlaceEditForm({ place }: PlaceEditFormProps) {
                       <p className="mt-2 text-sm text-red-600">
                         {typeof field.state.meta.errors[0] === "string"
                           ? field.state.meta.errors[0]
-                          : field.state.meta.errors[0]?.message}
+                          : (field.state.meta.errors[0] as { message?: string })?.message}
                       </p>
                     )}
                   </div>
@@ -145,20 +145,90 @@ export function PlaceEditForm({ place }: PlaceEditFormProps) {
             </form.Field>
           </div>
 
-          {/* Location Section */}
+          {/* Coordinates Section */}
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Location</h2>
+              <h2 className="text-xl font-bold text-gray-900">Coordinates</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Location coordinates (we&apos;ll add a map picker soon!)
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <form.Field name="coordinates">
+                {(field) => (
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                      Latitude
+                    </label>
+                    <Input
+                      type="number"
+                      step="any"
+                      value={field.state.value?.y ?? ""}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        if (isNaN(val)) {
+                          field.handleChange(null);
+                        } else {
+                          field.handleChange({
+                            x: field.state.value?.x ?? 0,
+                            y: val,
+                          });
+                        }
+                      }}
+                      placeholder="e.g. 4.6097"
+                      disabled={isPending}
+                      className="h-12 border-2 border-gray-300 text-base focus-visible:ring-[#fd5564]"
+                    />
+                  </div>
+                )}
+              </form.Field>
+              <form.Field name="coordinates">
+                {(field) => (
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                      Longitude
+                    </label>
+                    <Input
+                      type="number"
+                      step="any"
+                      value={field.state.value?.x ?? ""}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        if (isNaN(val)) {
+                          field.handleChange(null);
+                        } else {
+                          field.handleChange({
+                            x: val,
+                            y: field.state.value?.y ?? 0,
+                          });
+                        }
+                      }}
+                      placeholder="e.g. -74.0817"
+                      disabled={isPending}
+                      className="h-12 border-2 border-gray-300 text-base focus-visible:ring-[#fd5564]"
+                    />
+                  </div>
+                )}
+              </form.Field>
+            </div>
+          </div>
+
+          {/* Address Section */}
+          <div className="rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Address</h2>
               <p className="mt-1 text-sm text-gray-600">
                 Where can people find you?
               </p>
             </div>
-            <form.Field name="location">
+            <form.Field name="address">
               {(field) => (
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                   <Input
-                    id="place-location"
+                    id="place-address"
                     name={field.name}
                     value={field.state.value ?? ""}
                     onBlur={field.handleBlur}

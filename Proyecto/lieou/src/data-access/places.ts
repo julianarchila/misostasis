@@ -1,6 +1,6 @@
 import { eq, MyRpcClient } from "@/lib/effect-query";
 import { Data, Effect } from "effect";
-import type { CreatePlacePayload, Place } from "@/server/schemas/place";
+import type { CreatePlacePayload, Coordinates } from "@/server/schemas/place";
 
 /**
  * Query options for fetching user's places (business users)
@@ -76,8 +76,8 @@ export const createPlaceOptions = eq.mutationOptions({
     return yield* rpcClient.PlaceCreate({
       name: input.name,
       description: input.description,
-      location: input.location,
-      maps_url: input.maps_url,
+      coordinates: input.coordinates,
+      address: input.address,
       tag: input.tag,
       images: imageUrls.length > 0 ? imageUrls : undefined
     })
@@ -91,7 +91,8 @@ type UpdatePlaceInput = {
   id: number
   name?: string
   description?: string | null
-  location?: string | null
+  coordinates?: Coordinates | null
+  address?: string | null
 }
 
 export const updatePlaceOptions = eq.mutationOptions({
@@ -103,7 +104,8 @@ export const updatePlaceOptions = eq.mutationOptions({
       data: {
         name: input.name,
         description: input.description,
-        location: input.location,
+        coordinates: input.coordinates,
+        address: input.address,
       }
     })
   })

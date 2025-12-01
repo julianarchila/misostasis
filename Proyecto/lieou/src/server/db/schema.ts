@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, boolean, unique } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, boolean, unique, real, geometry, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const todo = pgTable("todo", {
@@ -16,6 +16,17 @@ export const user = pgTable("user", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
+// User location preferences for proximity-based recommendations
+export const user_location_preference = pgTable("user_location_preference", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  user_id: integer("user_id").references(() => user.id).notNull().unique(),
+  coordinates: geometry("coordinates", { type: "point", mode: "xy", srid: 4326 }),
+  search_radius_km: real("search_radius_km").notNull().default(5), // Default 5km
+  updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("user_location_preference_coordinates_idx").using("gist", table.coordinates)
+]);
+
 export const tag = pgTable("tag", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
@@ -32,10 +43,14 @@ export const place = pgTable("place", {
   business_id: integer("business_id").references(() => user.id).notNull(),
   name: text("name").notNull(),
   description: text("description"),
-  location: text("location"),
-  maps_url: text("maps_url"), 
+  // PostGIS geometry column for coordinates (longitude, latitude)
+  coordinates: geometry("coordinates", { type: "point", mode: "xy", srid: 4326 }),
+  address: text("address"), // Optional human-readable address
   created_at: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  // Spatial index for efficient proximity queries
+  index("place_coordinates_idx").using("gist", table.coordinates)
+]);
 
 export const place_image = pgTable("place_image", {
   id: serial("id").primaryKey(),
@@ -104,5 +119,12 @@ export const swipeRelations = relations(swipe, ({ one }) => ({
   place: one(place, {
     fields: [swipe.place_id],
     references: [place.id],
+  }),
+}));
+
+export const userLocationPreferenceRelations = relations(user_location_preference, ({ one }) => ({
+  user: one(user, {
+    fields: [user_location_preference.user_id],
+    references: [user.id],
   }),
 }));

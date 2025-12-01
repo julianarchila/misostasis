@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getMyPlacesOptions, updatePlaceOptions } from "@/data-access/places";
-import { UpdatePlaceFormSchema, type Place } from "@/server/schemas/place";
+import { UpdatePlaceFormSchema, type Place, type Coordinates } from "@/server/schemas/place";
 import { Schema } from "effect";
 import { routes } from "@/lib/routes";
 
@@ -53,7 +53,8 @@ export function useEditPlaceForm({ place }: UseEditPlaceFormOptions) {
     defaultValues: {
       name: place.name,
       description: place.description ?? null,
-      location: place.location ?? null,
+      coordinates: place.coordinates ?? null as Coordinates | null,
+      address: place.address ?? null,
     },
     validators: {
       onSubmit: Schema.standardSchemaV1(FormValidator),
@@ -64,7 +65,8 @@ export function useEditPlaceForm({ place }: UseEditPlaceFormOptions) {
         id: place.id,
         name: value.name,
         description: value.description,
-        location: value.location,
+        coordinates: value.coordinates,
+        address: value.address,
       });
     },
   });

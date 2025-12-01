@@ -1,6 +1,6 @@
 import { Effect } from "effect"
 import * as EArray from "effect/Array"
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 import { 
   place as placeTable, 
   place_image as placeImageTable, 
@@ -24,9 +24,17 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
         create: (payload: CreatePlacePayload & { business_id: number }) => DBQuery((db) =>
           db.transaction(async (tx) => {
             
-            const { images, tag, ...placeData } = payload
+            const { images, tag, coordinates, ...placeData } = payload
 
-            const [place] = await tx.insert(placeTable).values(placeData).returning()
+            // Build insert values with PostGIS point if coordinates provided
+            const insertValues = coordinates 
+              ? {
+                  ...placeData,
+                  coordinates: sql`ST_SetSRID(ST_MakePoint(${coordinates.x}, ${coordinates.y}), 4326)`
+                }
+              : placeData
+
+            const [place] = await tx.insert(placeTable).values(insertValues).returning()
 
             if (!place) throw new Error("Failed to create place")
 
@@ -112,12 +120,22 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
 
         update: (id: number, payload: UpdatePlacePayload) => DBQuery((db) =>
           db.transaction(async (tx) => {
-            const { images, ...placeData } = payload
+            const { images, coordinates, ...placeData } = payload
+
+            // Build update values with PostGIS point if coordinates provided
+            const updateValues = coordinates !== undefined
+              ? coordinates 
+                ? {
+                    ...placeData,
+                    coordinates: sql`ST_SetSRID(ST_MakePoint(${coordinates.x}, ${coordinates.y}), 4326)`
+                  }
+                : { ...placeData, coordinates: null }
+              : placeData
 
             // Update place data
             const [updatedPlace] = await tx
               .update(placeTable)
-              .set(placeData)
+              .set(updateValues)
               .where(eq(placeTable.id, id))
               .returning()
 

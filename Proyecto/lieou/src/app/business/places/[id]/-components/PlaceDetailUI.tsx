@@ -90,11 +90,11 @@ export function PlaceDetailUI({ place }: PlaceDetailUIProps) {
               place={{
                 name: place.name,
                 description: place.description,
-                location: place.location,
+                address: place.address,
                 images: place.images,
               }}
               category="Restaurant"
-              distance="0.5 mi"
+              distance={undefined}
               rating={4.8}
             />
           </div>

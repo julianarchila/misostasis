@@ -24,9 +24,11 @@ export default function ExplorerPlaceDetailPage({ params }: { params: Promise<{ 
     return <div className="text-sm text-neutral-600">Place not found</div>
   }
 
-  // Build the Google Maps link
-  const googleSearchLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`
-  const mapsLink = place.maps_url ?? googleSearchLink
+  // Build the Google Maps link from coordinates or address
+  const mapsQuery = place.coordinates
+    ? `${place.coordinates.y},${place.coordinates.x}`
+    : place.address ?? place.name
+  const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`
 
   return (
     <GradientBackground>
@@ -35,7 +37,7 @@ export default function ExplorerPlaceDetailPage({ params }: { params: Promise<{ 
           place={{
             name: place.name,
             description: place.description,
-            location: place.location,
+            address: place.address,
             images: place.images,
           }}
           category="Restaurant"

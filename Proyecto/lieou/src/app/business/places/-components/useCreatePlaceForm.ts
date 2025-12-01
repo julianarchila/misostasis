@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createPlaceOptions, getMyPlacesOptions } from "@/data-access/places";
-import { CreatePlaceFormSchema } from "@/server/schemas/place";
+import { CreatePlaceFormSchema, type Coordinates } from "@/server/schemas/place";
 import { Schema } from "effect";
 import { routes } from "@/lib/routes";
 
@@ -51,8 +51,8 @@ export function useCreatePlaceForm() {
     defaultValues: {
       name: "",
       description: null as string | null,
-      location: null as string | null,
-      maps_url: null as string | null,
+      coordinates: null as Coordinates | null,
+      address: null as string | null,
       tag: null as string | null,
       files: [] as File[],
     },
@@ -63,8 +63,8 @@ export function useCreatePlaceForm() {
       createPlace({
         name: value.name,
         description: value.description || null,
-        location: value.location || null,
-        maps_url: value.maps_url || null,
+        coordinates: value.coordinates || null,
+        address: value.address || null,
         tag: value.tag || null,
         files: value.files,
       });

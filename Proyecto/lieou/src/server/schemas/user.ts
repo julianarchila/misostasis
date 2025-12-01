@@ -1,4 +1,5 @@
 import { Schema } from "effect"
+import { CoordinatesSchema } from "./place"
 
 // ============================================================================
 // Shared Field Validations
@@ -32,6 +33,32 @@ export class User extends Schema.Class<User>("User")({
   id: Schema.String, // User's ID as a string
   name: Schema.String // User's name as a string
 }) { }
+
+// ============================================================================
+// User Location Preference Schemas
+// ============================================================================
+
+/**
+ * User location preference entity (database representation)
+ */
+export const UserLocationPreferenceSchema = Schema.Struct({
+  id: Schema.Number,
+  user_id: Schema.Number,
+  coordinates: Schema.NullOr(CoordinatesSchema),
+  search_radius_km: Schema.Number,
+  updated_at: Schema.NullOr(Schema.Date)
+})
+
+/**
+ * Payload for updating user location preferences
+ */
+export const UpdateLocationPreferencePayloadSchema = Schema.Struct({
+  coordinates: CoordinatesSchema,
+  search_radius_km: Schema.optional(Schema.Number.pipe(
+    Schema.greaterThan(0, { message: () => "Radius must be greater than 0" }),
+    Schema.lessThanOrEqualTo(100, { message: () => "Radius cannot exceed 100km" })
+  ))
+})
 
 // ============================================================================
 // Form Schemas (for TanStack Form)
@@ -69,3 +96,5 @@ export const OnboardUserPayload = OnboardUserPayloadSchema
 
 export type OnboardUserFormValues = Schema.Schema.Type<typeof OnboardUserFormSchema>
 export type OnboardUserPayload = Schema.Schema.Type<typeof OnboardUserPayloadSchema>
+export type UserLocationPreference = Schema.Schema.Type<typeof UserLocationPreferenceSchema>
+export type UpdateLocationPreferencePayload = Schema.Schema.Type<typeof UpdateLocationPreferencePayloadSchema>

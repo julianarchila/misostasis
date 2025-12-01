@@ -2,7 +2,8 @@ import { Rpc, RpcGroup } from "@effect/rpc"
 import { Schema } from "effect"
 import { AuthMiddleware } from "@/server/rpc/middlewares/auth"
 import { SwipePayloadSchema, SwipeSchema, SavedPlaceSchema } from "@/server/schemas/explorer"
-import { PlaceSchema } from "@/server/schemas/place"
+import { PlaceWithDistanceSchema } from "@/server/schemas/place"
+import { UserLocationPreferenceSchema, UpdateLocationPreferencePayloadSchema } from "@/server/schemas/user"
 import { Unauthenticated, PlaceNotFound } from "@/server/schemas/error"
 
 /**
@@ -38,13 +39,13 @@ export class ExplorerRpcs extends RpcGroup.make(
   }),
 
   /**
-   * Get recommended places for exploration
-   * Excludes places the user has already saved
+   * Get recommended places for exploration with distance
+   * Returns places within user's configured radius if location is set
    */
   Rpc.make("GetRecommended", {
     payload: Schema.Void,
     error: Unauthenticated,
-    success: Schema.Array(PlaceSchema)
+    success: Schema.Array(PlaceWithDistanceSchema)
   }),
 
   /**
@@ -53,6 +54,24 @@ export class ExplorerRpcs extends RpcGroup.make(
   Rpc.make("GetPlaceById", {
     payload: Schema.Struct({ id: Schema.Number }),
     error: Schema.Union(Unauthenticated, PlaceNotFound),
-    success: PlaceSchema
+    success: PlaceWithDistanceSchema
+  }),
+
+  /**
+   * Get user's location preference
+   */
+  Rpc.make("GetLocationPreference", {
+    payload: Schema.Void,
+    error: Unauthenticated,
+    success: Schema.NullOr(UserLocationPreferenceSchema)
+  }),
+
+  /**
+   * Update user's location preference
+   */
+  Rpc.make("UpdateLocationPreference", {
+    payload: UpdateLocationPreferencePayloadSchema,
+    error: Unauthenticated,
+    success: UserLocationPreferenceSchema
   })
 ).prefix("Explorer").middleware(AuthMiddleware) { }

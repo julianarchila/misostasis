@@ -4,7 +4,7 @@ import * as React from "react"
 import { SwipeDeck } from "./-components/SwipeDeck"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { getRecommendedPlacesOptions, getSavedPlacesOptions, swipeOptions } from "@/data-access/explorer"
-import type { Place } from "@/server/schemas/place"
+import type { PlaceWithDistance } from "@/server/schemas/place"
 
 export default function ExplorerPage() {
   const { data: places, isLoading, error } = useQuery(getRecommendedPlacesOptions)
@@ -21,11 +21,11 @@ export default function ExplorerPage() {
     },
   })
 
-  const handleSave = (place: Place) => {
+  const handleSave = (place: PlaceWithDistance) => {
     swipe({ place_id: place.id, direction: "right" })
   }
 
-  const handleDiscard = (place: Place) => {
+  const handleDiscard = (place: PlaceWithDistance) => {
     swipe({ place_id: place.id, direction: "left" })
   }
 
