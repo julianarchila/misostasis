@@ -14,6 +14,7 @@ export const PlaceHandlersLive = PlaceRpcs.toLayer(
       PlaceGetRecommended: () => placeService.getRecommended(),
       PlaceGetMyPlaces: () => placeService.getMyPlaces(),
       PlaceGetById: (payload) => placeService.getById(payload.id),
+      PlaceUpdate: (payload) => placeService.update(payload.id, payload.data),
       PlaceDelete: (payload) => placeService.delete(payload.id)
     }
   })

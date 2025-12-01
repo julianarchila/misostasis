@@ -1,8 +1,8 @@
 import { useForm } from "@tanstack/react-form";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { getMyPlacesOptions } from "@/data-access/places";
+import { getMyPlacesOptions, updatePlaceOptions } from "@/data-access/places";
 import { UpdatePlaceFormSchema, type Place } from "@/server/schemas/place";
 import { Schema } from "effect";
 import { routes } from "@/lib/routes";
@@ -19,6 +19,38 @@ interface UseEditPlaceFormOptions {
 export function useEditPlaceForm({ place }: UseEditPlaceFormOptions) {
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  const { mutate: updatePlace, isPending: isUpdatingPlace } = useMutation({
+    ...updatePlaceOptions,
+    throwOnError: false,
+    onError: (error) => {
+      error.match({
+        Unauthenticated: () => {
+          toast.error("You must be logged in to update this place.");
+        },
+        PlaceNotFound: () => {
+          toast.error("This place no longer exists or you don't have permission to edit it.");
+        },
+        UploadError: (e) => {
+          toast.error(`Failed to upload image: ${e.fileName}`);
+        },
+        OrElse: () => {
+          toast.error("Failed to update place. Please try again.");
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success("Changes saved successfully!");
+      // Invalidate queries to refetch
+      queryClient.invalidateQueries({
+        queryKey: getMyPlacesOptions.queryKey,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["places", place.id],
+      });
+      router.push(routes.business.places.detail(String(place.id)));
+    },
+  });
 
   // Extract existing images from the place
   const existingImages: ExistingImage[] = (place.images ?? []).map((img) => ({
@@ -49,30 +81,14 @@ export function useEditPlaceForm({ place }: UseEditPlaceFormOptions) {
       onSubmit: Schema.standardSchemaV1(FormValidator),
     },
     onSubmit: async ({ value }) => {
-      // Mock save for now - will wire up to API later
-      console.log("Saving place:", {
+      updatePlace({
         id: place.id,
         name: value.name,
         description: value.description,
         location: value.location,
         existingImages: value.existingImages,
-        newFiles: value.files,
+        files: value.files,
       });
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast.success("Changes saved!");
-
-      // Invalidate queries to refetch
-      queryClient.invalidateQueries({
-        queryKey: getMyPlacesOptions.queryKey,
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["places", place.id],
-      });
-
-      router.push(routes.business.places.detail(String(place.id)));
     },
   });
 
@@ -86,7 +102,7 @@ export function useEditPlaceForm({ place }: UseEditPlaceFormOptions) {
 
   return {
     form,
-    isPending: form.state.isSubmitting,
+    isPending: isUpdatingPlace || form.state.isSubmitting,
     existingImages: form.getFieldValue("existingImages"),
     removeExistingImage,
   };
