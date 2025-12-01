@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { onboardUserOptions } from "@/data-access/users";
 import { OnboardUserPayload } from "@/server/schemas/user";
+import { routes } from "@/lib/routes";
 
 export function useOnboardingForm() {
   const [selectedUserType, setSelectedUserType] = useState<
@@ -36,7 +37,7 @@ export function useOnboardingForm() {
           | "explorer"
           | "business"
           | undefined);
-      window.location.replace(role === "business" ? "/business" : "/explorer");
+      window.location.replace(role === "business" ? routes.business.root : routes.explorer.root);
     },
   });
 

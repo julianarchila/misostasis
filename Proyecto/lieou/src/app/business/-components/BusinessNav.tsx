@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { routes, isRouteActive } from "@/lib/routes";
 import { Plus, Store } from "lucide-react";
 
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
@@ -10,8 +11,8 @@ import { Button } from "@/components/ui/button";
 
 export function BusinessNav() {
   const pathname = usePathname();
-  const isNew = pathname === "/business/new";
-  const isList = pathname === "/business" || pathname.startsWith("/business/p/")
+  const isPlaces = isRouteActive(pathname, routes.business.places.list, true) || pathname === routes.business.root;
+  const isNew = pathname === routes.business.places.new;
 
   const linkBase =
     "flex flex-1 flex-col items-center gap-1 py-3 transition-colors text-gray-500";
@@ -22,15 +23,15 @@ export function BusinessNav() {
     <div className="mx-auto flex max-w-md">
 
       <Link
-        href="/business/"
-        className={cn(linkBase, isList && active)}
+        href={routes.business.places.list}
+        className={cn(linkBase, isPlaces && active)}
       >
         <Store className="h-6 w-6" />
         <span className="text-xs font-medium">Places</span>
       </Link>
 
       <Link
-        href="/business/new"
+        href={routes.business.places.new}
         className={cn(linkBase, isNew && active)}
       >
         <Plus className="h-6 w-6" />
@@ -59,5 +60,3 @@ export function BusinessNav() {
     </div>
   </nav>
 }
-
-

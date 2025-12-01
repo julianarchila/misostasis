@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, MapPin } from "lucide-react";
 import type { Place as MockPlace } from "@/lib/mockPlaces";
+import { routes } from "@/lib/routes";
 
 type PlaceDetailCardProps = {
   place: MockPlace & { location?: string | null };
@@ -62,7 +63,7 @@ export function PlaceDetailCard({ place, isFavorite, onToggleFavorite }: PlaceDe
         </div>
 
         <div className="mt-6">
-          <Link href="/explorer/saved" className="text-sm text-neutral-600 hover:text-neutral-900">
+          <Link href={routes.explorer.saved} className="text-sm text-neutral-600 hover:text-neutral-900">
             Back to Saved
           </Link>
         </div>

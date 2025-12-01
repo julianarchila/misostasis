@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Place } from "@/lib/mockPlaces";
+import { routes } from "@/lib/routes";
 
 type SavedPlacesListProps = {
   places: Place[];
@@ -45,7 +46,7 @@ export function SavedPlacesList({ places, favoritesById, onToggleFavorite }: Sav
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                   <Button asChild variant="outline" className="h-8 px-2">
-                    <a href={`/explorer/places/${p.id}`}>Details</a>
+                    <a href={routes.explorer.places.detail(p.id)}>Details</a>
                   </Button>
                   <Button
                     variant={isFavorite ? "default" : "outline"}

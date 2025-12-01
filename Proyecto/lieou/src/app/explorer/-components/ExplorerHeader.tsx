@@ -4,13 +4,14 @@ import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@cl
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ExplorerNav } from "./ExplorerNav";
+import { routes, isRouteActive } from "@/lib/routes";
 
 export function ExplorerHeader() {
   const pathname = usePathname();
   const title =
-    pathname === "/explorer" ? "Discover" :
-    pathname.startsWith("/explorer/saved") ? "Saved" :
-    pathname.startsWith("/explorer/preferences") ? "Preferences" :
+    pathname === routes.explorer.feed ? "Discover" :
+    isRouteActive(pathname, routes.explorer.saved) ? "Saved" :
+    isRouteActive(pathname, routes.explorer.preferences) ? "Preferences" :
     "Explorer";
 
   return (
@@ -37,5 +38,3 @@ export function ExplorerHeader() {
     </div>
   );
 }
-
-

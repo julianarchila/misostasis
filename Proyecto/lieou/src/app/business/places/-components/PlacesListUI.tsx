@@ -1,12 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
-import type { Place } from "@/server/schemas/place";
+import { Card } from "@/components/ui/card";
 import Link from "next/link";
-
-import { MapPin, Eye, Heart } from "lucide-react"
-
+import type { Place } from "@/server/schemas/place";
+import { routes } from "@/lib/routes";
+import { MapPin, Eye, Heart } from "lucide-react";
 
 interface PlacesListUIProps {
   places: readonly Place[];
@@ -21,10 +18,13 @@ export function PlacesListUI({ places }: PlacesListUIProps) {
     );
   }
 
-  return <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {places.map((place) => {
-
-        const firstImage = place.images && place.images.length > 0 ? place.images[0].url : "/placeholder.svg";
+  return (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {places.map((place) => {
+        const firstImage =
+          place.images && place.images.length > 0
+            ? place.images[0].url
+            : "/placeholder.svg";
         return (
           <Card
             key={place.id}
@@ -40,10 +40,11 @@ export function PlacesListUI({ places }: PlacesListUIProps) {
               <div className="absolute right-3 top-3">
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-bold ${
-                    "Active" === "Active" ? "bg-green-500 text-white" : "bg-gray-500 text-white"
+                    "Active" === "Active"
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-500 text-white"
                   }`}
                 >
-                  {/* {place.status} */}
                   Active
                 </span>
               </div>
@@ -61,7 +62,9 @@ export function PlacesListUI({ places }: PlacesListUIProps) {
               <div className="mt-4 flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-1">
                   <Eye className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium text-gray-900">{Number(1823).toLocaleString()}</span>
+                  <span className="font-medium text-gray-900">
+                    {Number(1823).toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Heart className="h-4 w-4 text-[#fd5564]" />
@@ -80,12 +83,17 @@ export function PlacesListUI({ places }: PlacesListUIProps) {
                 <Button
                   variant="outline"
                   className="flex-1 rounded-full border-2 font-medium hover:border-[#fd5564] hover:text-[#fd5564] bg-transparent"
+                  asChild
                 >
-                  View
+                  <Link href={routes.business.places.detail(String(place.id))}>
+                    View
+                  </Link>
                 </Button>
               </div>
             </div>
           </Card>
-        )})}
-      </div>
+        );
+      })}
+    </div>
+  );
 }

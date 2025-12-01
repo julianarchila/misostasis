@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs"
+import { routes } from "@/lib/routes"
 
 export default function LandingPage() {
   const { user } = useUser()
   const role = (user?.publicMetadata as Record<string, unknown>)?.role as "explorer" | "business" | undefined
-  const dashboardHref = role === "business" ? "/business" : "/explorer"
+  const dashboardHref = role === "business" ? routes.business.root : routes.explorer.root
 
   return (
     <main className="min-h-[100svh] bg-white">
@@ -158,8 +159,8 @@ function Footer() {
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4 text-xs text-neutral-500">
         <div>© {new Date().getFullYear()} Lieou</div>
         <div className="flex items-center gap-4">
-          <Link href="/sign-in">Sign in</Link>
-          <Link href="/sign-up">Get started</Link>
+          <Link href={routes.signIn}>Sign in</Link>
+          <Link href={routes.signUp}>Get started</Link>
         </div>
       </div>
     </div>
