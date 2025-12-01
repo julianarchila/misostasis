@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { Heart, MapPin, ExternalLink } from "lucide-react"
+import { Heart, MapPin, ExternalLink, Trash2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { routes } from "@/lib/routes"
@@ -10,9 +10,17 @@ type SavedPlacesListProps = {
   places: readonly Place[]
   favoritesById: Record<string, boolean>
   onToggleFavorite: (id: string) => void
+  onRemove: (id: number) => void
+  isRemoving?: boolean
 }
 
-export function SavedPlacesList({ places, favoritesById, onToggleFavorite }: SavedPlacesListProps) {
+export function SavedPlacesList({ 
+  places, 
+  favoritesById, 
+  onToggleFavorite, 
+  onRemove,
+  isRemoving 
+}: SavedPlacesListProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       {places.map((place) => {
@@ -39,21 +47,36 @@ export function SavedPlacesList({ places, favoritesById, onToggleFavorite }: Sav
                 sizes="(max-width: 640px) 100vw, 50vw"
               />
               
-              {/* Favorite button overlay */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onToggleFavorite(placeId)}
-                className={`absolute right-3 top-3 h-9 w-9 rounded-full backdrop-blur-sm transition-all ${
-                  isFavorite 
-                    ? "bg-[#fd5564] hover:bg-[#fd5564]/90 text-white" 
-                    : "bg-white/80 hover:bg-white text-gray-600"
-                }`}
-                aria-pressed={isFavorite}
-                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-              >
-                <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
-              </Button>
+              {/* Action buttons overlay */}
+              <div className="absolute right-3 top-3 flex gap-2">
+                {/* Remove button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onRemove(place.id)}
+                  disabled={isRemoving}
+                  className="h-9 w-9 rounded-full bg-white/80 backdrop-blur-sm hover:bg-red-500 hover:text-white text-gray-600 transition-all"
+                  aria-label="Remove from saved"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                
+                {/* Favorite button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onToggleFavorite(placeId)}
+                  className={`h-9 w-9 rounded-full backdrop-blur-sm transition-all ${
+                    isFavorite 
+                      ? "bg-[#fd5564] hover:bg-[#fd5564]/90 text-white" 
+                      : "bg-white/80 hover:bg-white text-gray-600"
+                  }`}
+                  aria-pressed={isFavorite}
+                  aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+                </Button>
+              </div>
 
               {/* Gradient overlay for text readability */}
               <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
