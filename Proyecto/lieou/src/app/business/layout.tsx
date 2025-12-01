@@ -1,8 +1,9 @@
-import { auth } from '@clerk/nextjs/server'
+"use client";
+/* import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { BusinessHeader } from './-components/BusinessHeader'
+import { BusinessHeader } from './-components/BusinessHeader' */
 
-export default async function BusinessLayout({ children }: { children: React.ReactNode }) {
+/* export default async function BusinessLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
   if (!session.isAuthenticated) {
     redirect('/sign-in')
@@ -23,6 +24,26 @@ export default async function BusinessLayout({ children }: { children: React.Rea
       </div>
     </main>
   )
-}
+} */
 
+
+
+
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import { Store, BarChart3, User, Plus } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { BusinessNav } from "./-components/BusinessNav";
+
+export default function BusinessLayout({ children }: { children: React.ReactNode }) {
+
+  return (
+    <div className="flex h-screen flex-col bg-gray-50">
+      <main className="flex-1 overflow-auto">{children}</main>
+
+      <BusinessNav />
+    </div>
+  )
+}
 

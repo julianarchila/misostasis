@@ -1,6 +1,7 @@
 "use client";
 
-import { PlaceForm } from "../-components/PlaceForm";
+import { PlaceForm } from "../p/-components/PlaceForm";
+
 
 export default function BusinessNewPlacePage() {
   return <PlaceForm />;

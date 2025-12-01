@@ -3,35 +3,61 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Plus, Store } from "lucide-react";
+
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 
 export function BusinessNav() {
   const pathname = usePathname();
-  const isList = pathname === "/business/places" || pathname.startsWith("/business/places/");
-  const isNew = pathname === "/business/places/new";
+  const isNew = pathname === "/business/new";
+  const isList = pathname === "/business" || pathname.startsWith("/business/p/")
 
   const linkBase =
-    "text-sm py-2 text-center rounded-md transition-colors hover:bg-neutral-100";
-  const active =
-    "bg-neutral-100 font-medium";
+    "flex flex-1 flex-col items-center gap-1 py-3 transition-colors text-gray-500";
+  const active = "text-[#fd5564]";
 
-  return (
-    <div className="w-full">
-      <div className="grid w-full grid-cols-2 gap-2">
-        <Link
-          href="/business/places"
-          className={cn(linkBase, isList && active)}
-        >
-          Places
-        </Link>
-        <Link
-          href="/business/places/new"
-          className={cn(linkBase, isNew && active)}
-        >
-          New
-        </Link>
+
+  return <nav className="border-t border-gray-200 bg-white shadow-lg">
+    <div className="mx-auto flex max-w-md">
+
+      <Link
+        href="/business/"
+        className={cn(linkBase, isList && active)}
+      >
+        <Store className="h-6 w-6" />
+        <span className="text-xs font-medium">Places</span>
+      </Link>
+
+      <Link
+        href="/business/new"
+        className={cn(linkBase, isNew && active)}
+      >
+        <Plus className="h-6 w-6" />
+        <span className="text-xs font-medium">New</span>
+      </Link>
+
+      <div
+        className={linkBase}
+      >
+        <SignedOut>
+          <SignInButton mode="modal" >
+            <Button variant="outline" className="h-9 px-3 text-sm">Sign In</Button>
+          </SignInButton>
+          <SignUpButton mode="modal" >
+            <Button className="h-9 px-3 text-sm rounded-full bg-[#6c47ff] text-white">Sign Up</Button>
+          </SignUpButton>
+        </SignedOut>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
+
       </div>
+
+
+
     </div>
-  );
+  </nav>
 }
 
 

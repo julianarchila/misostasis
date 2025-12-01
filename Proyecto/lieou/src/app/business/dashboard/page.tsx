@@ -1,10 +1,9 @@
-
-
+"use client"
 
 import { MapPin, Eye, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { BusinessPlaceList } from "./p/-components/PlacesList"
+import { BusinessPlaceList } from "../p/-components/PlacesList"
 
 export default function BusinessDashboard() {
   // Mock data - replace with real data
