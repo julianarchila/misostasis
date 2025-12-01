@@ -78,6 +78,7 @@ export const createPlaceOptions = eq.mutationOptions({
       name: input.name,
       description: input.description,
       location: input.location,
+      mapsUrl: input.mapsUrl,
       images: imageUrls.length > 0 ? imageUrls : undefined
     })
   })

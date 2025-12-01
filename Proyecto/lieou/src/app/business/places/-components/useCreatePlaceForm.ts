@@ -65,6 +65,7 @@ export function useCreatePlaceForm() {
         name: value.name,
         description: value.description || null,
         location: value.location || null,
+        mapsUrl: value.maps_url || null,
         files: value.files
       });
     },

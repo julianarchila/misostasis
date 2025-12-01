@@ -14,11 +14,13 @@ type PlaceDetailCardProps = {
 };
 
 export function PlaceDetailCard({ place, isFavorite, onToggleFavorite }: PlaceDetailCardProps) {
-  // Prefer the stored `location` (shared maps link) when available.
-  // Otherwise fallback to a Google Maps search for the place name.
-  const mapsHref = place.location
-    ? place.location
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`;
+  // Modifica la lógica para priorizar mapsUrl si existe
+  const mapsHref = place.mapsUrl 
+    ? place.mapsUrl
+    : (place.location 
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.location)}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`
+      );
   return (
     <div className="mx-auto w-full">
       <div className="relative h-[48svh] w-full bg-neutral-100">
