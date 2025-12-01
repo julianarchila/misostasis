@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useEditPlaceForm } from "./useEditPlaceForm";
-import { ImageUpload } from "../../../-components/ImageUpload";
+import { ImageUpload, ImageItem } from "../../../-components/ImageUpload";
 import { GradientBackground } from "@/components/GradientBackground";
 import { ChevronLeft, Eye, Pencil, MapPin, Loader2 } from "lucide-react";
 import type { Place } from "@/server/schemas/place";
@@ -18,14 +19,21 @@ interface PlaceEditFormProps {
 
 export function PlaceEditForm({ place }: PlaceEditFormProps) {
   const router = useRouter();
-  const { form, isPending, removeExistingImage } = useEditPlaceForm({ place });
+  const { form, isPending } = useEditPlaceForm({ place });
+
+  // Images are managed independently with their own state
+  const [images, setImages] = useState<ImageItem[]>(
+    (place.images ?? []).map((img, i) => ({
+      id: img.id,
+      url: img.url,
+      order: i,
+    }))
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     form.handleSubmit();
   };
-
-  const existingImages = form.getFieldValue("existingImages");
 
   return (
     <GradientBackground className="pb-20">
@@ -56,7 +64,7 @@ export function PlaceEditForm({ place }: PlaceEditFormProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Photos Section - Unified */}
+          {/* Photos Section - Using new ImageUpload with independent state */}
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
             <div className="mb-4">
               <h2 className="text-xl font-bold text-gray-900">Photos</h2>
@@ -64,18 +72,13 @@ export function PlaceEditForm({ place }: PlaceEditFormProps) {
                 Drag to reorder. First photo is the main image.
               </p>
             </div>
-            <form.Field name="files">
-              {(field) => (
-                <ImageUpload
-                  files={field.state.value}
-                  onFilesChange={(files) => field.handleChange(files)}
-                  existingImages={existingImages}
-                  onRemoveExisting={removeExistingImage}
-                  disabled={isPending}
-                  maxImages={6}
-                />
-              )}
-            </form.Field>
+            <ImageUpload
+              placeId={place.id}
+              images={images}
+              onImagesChange={setImages}
+              disabled={isPending}
+              maxImages={6}
+            />
           </div>
 
           {/* Name Section */}

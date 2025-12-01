@@ -117,31 +117,18 @@ export const getRecommendedOptions = eq.queryOptions({
 
 /**
  * Mutation options for updating a place
+ * Note: Images are now managed independently via ImageRpcs
  */
 type UpdatePlaceInput = {
   id: number
   name?: string
   description?: string | null
   location?: string | null
-  existingImages?: Array<{ id: number; url: string }>
-  files?: File[]
 }
 
 export const updatePlaceOptions = eq.mutationOptions({
   mutationFn: (input: UpdatePlaceInput) => Effect.gen(function* () {
     const rpcClient = yield* MyRpcClient
-    let imageUrls: string[] = []
-
-    // Upload new files if any
-    if (input.files && input.files.length > 0) {
-      const newUrls = yield* Effect.forEach(input.files, uploadImage, { concurrency: "unbounded" })
-      imageUrls = [...newUrls]
-    }
-
-    // Include existing images
-    if (input.existingImages) {
-      imageUrls = [...imageUrls, ...input.existingImages.map(img => img.url)]
-    }
 
     return yield* rpcClient.PlaceUpdate({
       id: input.id,
@@ -149,7 +136,6 @@ export const updatePlaceOptions = eq.mutationOptions({
         name: input.name,
         description: input.description,
         location: input.location,
-        images: imageUrls.length > 0 ? imageUrls : undefined
       }
     })
   })

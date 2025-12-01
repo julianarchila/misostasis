@@ -7,11 +7,6 @@ import { UpdatePlaceFormSchema, type Place } from "@/server/schemas/place";
 import { Schema } from "effect";
 import { routes } from "@/lib/routes";
 
-interface ExistingImage {
-  id: number;
-  url: string;
-}
-
 interface UseEditPlaceFormOptions {
   place: Place;
 }
@@ -31,9 +26,6 @@ export function useEditPlaceForm({ place }: UseEditPlaceFormOptions) {
         PlaceNotFound: () => {
           toast.error("This place no longer exists or you don't have permission to edit it.");
         },
-        UploadError: (e) => {
-          toast.error(`Failed to upload image: ${e.fileName}`);
-        },
         OrElse: () => {
           toast.error("Failed to update place. Please try again.");
         },
@@ -52,21 +44,9 @@ export function useEditPlaceForm({ place }: UseEditPlaceFormOptions) {
     },
   });
 
-  // Extract existing images from the place
-  const existingImages: ExistingImage[] = (place.images ?? []).map((img) => ({
-    id: img.id,
-    url: img.url,
-  }));
-
-  // Schema that allows files in the form state
+  // Form schema - images are handled separately now
   const FormValidator = UpdatePlaceFormSchema.pipe(
-    Schema.omit("images"),
-    Schema.extend(
-      Schema.Struct({
-        files: Schema.mutable(Schema.Array(Schema.Any)),
-        existingImages: Schema.mutable(Schema.Array(Schema.Any)),
-      })
-    )
+    Schema.omit("images")
   );
 
   const form = useForm({
@@ -74,36 +54,23 @@ export function useEditPlaceForm({ place }: UseEditPlaceFormOptions) {
       name: place.name,
       description: place.description ?? null,
       location: place.location ?? null,
-      files: [] as File[],
-      existingImages: existingImages,
     },
     validators: {
       onSubmit: Schema.standardSchemaV1(FormValidator),
     },
     onSubmit: async ({ value }) => {
+      // Only update place metadata - images are managed independently
       updatePlace({
         id: place.id,
         name: value.name,
         description: value.description,
         location: value.location,
-        existingImages: value.existingImages,
-        files: value.files,
       });
     },
   });
 
-  const removeExistingImage = (imageId: number) => {
-    const current = form.getFieldValue("existingImages");
-    form.setFieldValue(
-      "existingImages",
-      current.filter((img) => img.id !== imageId)
-    );
-  };
-
   return {
     form,
     isPending: isUpdatingPlace || form.state.isSubmitting,
-    existingImages: form.getFieldValue("existingImages"),
-    removeExistingImage,
   };
 }

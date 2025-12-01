@@ -34,3 +34,10 @@ export class PlaceNotFound extends Schema.TaggedError<PlaceNotFound>()(
     placeId: Schema.Number
   }
 ) {}
+
+export class ImageNotFound extends Schema.TaggedError<ImageNotFound>()(
+  "ImageNotFound",
+  {
+    imageId: Schema.Number
+  }
+) {}

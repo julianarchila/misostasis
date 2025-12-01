@@ -39,8 +39,12 @@ export const place = pgTable("place", {
 
 export const place_image = pgTable("place_image", {
   id: serial("id").primaryKey(),
-  place_id: integer("place_id").references(() => place.id).notNull(),
+  place_id: integer("place_id").references(() => place.id, { onDelete: 'cascade' }).notNull(),
   url: text("url").notNull(),
+  storage_key: text("storage_key"),
+  order: integer("order").notNull().default(0),
+  status: text("status").notNull().default("confirmed"),
+  created_at: timestamp("created_at").defaultNow(),
 });
 
 export const place_tag = pgTable("place_tag", {

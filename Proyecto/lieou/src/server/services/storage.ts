@@ -1,5 +1,5 @@
 import { Config, Effect } from "effect"
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 import { StorageError } from "@/server/schemas/error"
 
@@ -45,7 +45,21 @@ export class StorageService extends Effect.Service<StorageService>()(
         getPublicUrl: (key: string) => {
           if (!publicUrl) throw new Error("Missing R2_PUBLIC_URL")
           return `${publicUrl}/${key}`
-        }
+        },
+
+        deleteObject: (key: string) => Effect.gen(function* () {
+          if (!bucketName) return yield* Effect.die("Missing R2_BUCKET_NAME")
+
+          const command = new DeleteObjectCommand({
+            Bucket: bucketName,
+            Key: key,
+          })
+
+          yield* Effect.tryPromise({
+            try: () => client.send(command),
+            catch: (error) => new StorageError({ message: 'Failed to delete object', cause: error })
+          })
+        })
       }
     }),
     dependencies: [],

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PlaceFormActions } from "./PlaceFormActions";
 import { useCreatePlaceForm } from "./useCreatePlaceForm";
-import { ImageUpload } from "./ImageUpload";
+import { ImageUploadPending } from "./ImageUpload";
 import { GradientBackground } from "@/components/GradientBackground";
 import { Sparkles, MapPin, Link as LinkIcon, Tag } from "lucide-react";
 
@@ -45,7 +45,7 @@ export function PlaceForm() {
             </div>
             <form.Field name="files">
               {(field) => (
-                <ImageUpload
+                <ImageUploadPending
                   files={field.state.value}
                   onFilesChange={(files) => field.handleChange(files)}
                   disabled={isPending}
