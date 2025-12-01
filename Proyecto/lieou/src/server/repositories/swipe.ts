@@ -1,10 +1,6 @@
 import { Effect } from "effect"
-import { eq, and, ne } from "drizzle-orm"
-import { 
-  swipe as swipeTable, 
-  place as placeTable,
-  place_image as placeImageTable
-} from "@/server/db/schema"
+import { eq, and, notExists } from "drizzle-orm"
+import { swipe as swipeTable, place as placeTable } from "@/server/db/schema"
 import { DB } from "@/server/db/service"
 import type { SwipeDirection, SavedPlace, Swipe } from "@/server/schemas/explorer"
 import type { Place } from "@/server/schemas/place"
@@ -19,7 +15,7 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
         /**
          * Record a swipe action (upsert - updates direction if already exists)
          */
-        upsert: (payload: { user_id: number; place_id: number; direction: SwipeDirection }) => 
+        upsert: (payload: { user_id: number; place_id: number; direction: SwipeDirection }) =>
           DBQuery((db) =>
             db.insert(swipeTable)
               .values(payload)
@@ -41,38 +37,35 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
         /**
          * Get all places the user swiped right on (saved places)
          */
-        findSavedByUserId: (userId: number) => 
-          DBQuery(async (db) => {
-            const swipes = await db.query.swipe.findMany({
+        findSavedByUserId: (userId: number) =>
+          DBQuery((db) =>
+            db.query.swipe.findMany({
               where: and(
                 eq(swipeTable.user_id, userId),
                 eq(swipeTable.direction, "right")
               ),
-              orderBy: (swipe, { desc }) => [desc(swipe.created_at)]
-            })
-
-            // Fetch places with images for each swipe
-            const savedPlaces: SavedPlace[] = []
-            for (const swipe of swipes) {
-              const place = await db.query.place.findFirst({
-                where: eq(placeTable.id, swipe.place_id),
-                with: {
-                  images: {
-                    orderBy: (images, { asc }) => [asc(images.order)]
+              orderBy: (swipe, { desc }) => [desc(swipe.created_at)],
+              with: {
+                place: {
+                  with: {
+                    images: {
+                      orderBy: (images, { asc }) => [asc(images.order)]
+                    }
                   }
                 }
-              })
-              if (place) {
-                savedPlaces.push({
+              }
+            })
+          ).pipe(
+            Effect.map(swipes =>
+              swipes
+                .filter(swipe => swipe.place !== null)
+                .map(swipe => ({
                   swipe_id: swipe.id,
                   saved_at: swipe.created_at,
-                  place: place as Place
-                })
-              }
-            }
-
-            return savedPlaces
-          }),
+                  place: swipe.place as Place
+                } satisfies SavedPlace))
+            )
+          ),
 
         /**
          * Get all place IDs the user has swiped right on
@@ -105,34 +98,29 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
           ),
 
         /**
-         * Get recommended places for a user (excludes places they created and already swiped right on)
+         * Get recommended places for a user (excludes places they already swiped right on)
          */
         findRecommendedForUser: (userId: number) =>
-          DBQuery(async (db) => {
-            // Get place IDs the user already swiped right on
-            const savedSwipes = await db.select({ place_id: swipeTable.place_id })
-              .from(swipeTable)
-              .where(and(
-                eq(swipeTable.user_id, userId),
-                eq(swipeTable.direction, "right")
-              ))
-            const savedPlaceIds = new Set(savedSwipes.map(s => s.place_id))
-
-            // Get all places with images
-            const allPlaces = await db.query.place.findMany({
+          DBQuery((db) =>
+            db.query.place.findMany({
+              where: notExists(
+                db.select()
+                  .from(swipeTable)
+                  .where(and(
+                    eq(swipeTable.place_id, placeTable.id),
+                    eq(swipeTable.user_id, userId),
+                    eq(swipeTable.direction, "right")
+                  ))
+              ),
               with: {
                 images: {
                   orderBy: (images, { asc }) => [asc(images.order)]
                 }
               }
             })
-
-            // Filter out saved places and optionally the user's own places
-            return allPlaces.filter(p => {
-              if (savedPlaceIds.has(p.id)) return false
-              return true
-            }) as Place[]
-          })
+          ).pipe(
+            Effect.map(places => places satisfies Place[])
+          )
       }
     }),
     dependencies: [DB.Default],
