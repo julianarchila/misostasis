@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GradientBackground } from "@/components/GradientBackground";
+import { MapPicker, type Coordinates } from "@/components/MapPicker";
 import { MapPin, Locate, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -16,8 +17,7 @@ import {
 
 export default function ExplorerPreferencesPage() {
   const queryClient = useQueryClient();
-  const [lat, setLat] = React.useState<string>("");
-  const [lon, setLon] = React.useState<string>("");
+  const [coordinates, setCoordinates] = React.useState<Coordinates | null>(null);
   const [radius, setRadius] = React.useState<string>("5");
   const [isLocating, setIsLocating] = React.useState(false);
 
@@ -38,8 +38,7 @@ export default function ExplorerPreferencesPage() {
   React.useEffect(() => {
     if (locationPref) {
       if (locationPref.coordinates) {
-        setLat(locationPref.coordinates.y.toString());
-        setLon(locationPref.coordinates.x.toString());
+        setCoordinates(locationPref.coordinates);
       }
       setRadius(locationPref.search_radius_km.toString());
     }
@@ -54,8 +53,10 @@ export default function ExplorerPreferencesPage() {
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLat(position.coords.latitude.toString());
-        setLon(position.coords.longitude.toString());
+        setCoordinates({
+          x: position.coords.longitude,
+          y: position.coords.latitude,
+        });
         setIsLocating(false);
         toast.success("Location detected!");
       },
@@ -84,29 +85,16 @@ export default function ExplorerPreferencesPage() {
   };
 
   const handleSave = () => {
-    const latNum = parseFloat(lat);
-    const lonNum = parseFloat(lon);
+    if (!coordinates) {
+      toast.error("Please select a location on the map");
+      return;
+    }
+
     const radiusNum = parseFloat(radius);
-
-    if (isNaN(latNum) || isNaN(lonNum)) {
-      toast.error("Please enter valid coordinates");
-      return;
-    }
-
-    if (latNum < -90 || latNum > 90) {
-      toast.error("Latitude must be between -90 and 90");
-      return;
-    }
-
-    if (lonNum < -180 || lonNum > 180) {
-      toast.error("Longitude must be between -180 and 180");
-      return;
-    }
-
     const finalRadius = isNaN(radiusNum) || radiusNum <= 0 ? 5 : Math.min(radiusNum, 100);
 
     updateMutation.mutate({
-      coordinates: { x: lonNum, y: latNum },
+      coordinates,
       search_radius_km: finalRadius
     });
   };
@@ -145,55 +133,74 @@ export default function ExplorerPreferencesPage() {
         </div>
 
         <div className="space-y-6">
-          {/* Current Location Button */}
+          {/* Map Picker */}
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Your Location</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Click on the map to set your location
+              </p>
+            </div>
+            
+            <MapPicker
+              value={coordinates}
+              onChange={setCoordinates}
+              disabled={updateMutation.isPending}
+            />
+
+            {/* Current Location Button */}
             <Button
               type="button"
               onClick={handleGetCurrentLocation}
-              disabled={isLocating}
-              className="w-full bg-gradient-to-r from-[#fd5564] to-[#ff8a5b] text-white hover:opacity-90"
+              disabled={isLocating || updateMutation.isPending}
+              variant="outline"
+              className="mt-4 w-full border-2 border-gray-300"
             >
               <Locate className="mr-2 h-4 w-4" />
               {isLocating ? "Detecting location..." : "Use Current Location"}
             </Button>
 
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+            {/* Coordinate inputs for fine-tuning */}
+            {coordinates && (
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Latitude
+                  </label>
+                  <Input
+                    type="number"
+                    step="any"
+                    value={coordinates.y}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      if (!isNaN(val)) {
+                        setCoordinates({ ...coordinates, y: val });
+                      }
+                    }}
+                    disabled={updateMutation.isPending}
+                    className="h-10 border-2 border-gray-300 text-sm focus-visible:ring-[#fd5564]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Longitude
+                  </label>
+                  <Input
+                    type="number"
+                    step="any"
+                    value={coordinates.x}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      if (!isNaN(val)) {
+                        setCoordinates({ ...coordinates, x: val });
+                      }
+                    }}
+                    disabled={updateMutation.isPending}
+                    className="h-10 border-2 border-gray-300 text-sm focus-visible:ring-[#fd5564]"
+                  />
+                </div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">or enter manually</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Latitude
-                </label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={lat}
-                  onChange={(e) => setLat(e.target.value)}
-                  placeholder="e.g. 4.6097"
-                  className="border-2 border-gray-300 focus-visible:ring-[#fd5564]"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Longitude
-                </label>
-                <Input
-                  type="number"
-                  step="any"
-                  value={lon}
-                  onChange={(e) => setLon(e.target.value)}
-                  placeholder="e.g. -74.0817"
-                  className="border-2 border-gray-300 focus-visible:ring-[#fd5564]"
-                />
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Search Radius */}
@@ -219,7 +226,7 @@ export default function ExplorerPreferencesPage() {
           {/* Save Button */}
           <Button
             onClick={handleSave}
-            disabled={updateMutation.isPending || !lat || !lon}
+            disabled={updateMutation.isPending || !coordinates}
             className="w-full bg-gradient-to-r from-[#fd5564] to-[#ff8a5b] py-6 text-lg font-semibold text-white shadow-xl hover:opacity-90"
           >
             {updateMutation.isPending ? "Saving..." : "Save Preferences"}

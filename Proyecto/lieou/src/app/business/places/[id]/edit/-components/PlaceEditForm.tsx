@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useEditPlaceForm } from "./useEditPlaceForm";
 import { ImageUpload, ImageItem } from "../../../-components/ImageUpload";
 import { GradientBackground } from "@/components/GradientBackground";
+import { MapPicker } from "@/components/MapPicker";
 import { ChevronLeft, Eye, Pencil, MapPin, Loader2 } from "lucide-react";
 import type { Place } from "@/server/schemas/place";
 import { routes } from "@/lib/routes";
@@ -148,71 +149,70 @@ export function PlaceEditForm({ place }: PlaceEditFormProps) {
           {/* Coordinates Section */}
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Coordinates</h2>
+              <h2 className="text-xl font-bold text-gray-900">Location</h2>
               <p className="mt-1 text-sm text-gray-600">
-                Location coordinates (we&apos;ll add a map picker soon!)
+                Click on the map to update your place&apos;s location
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <form.Field name="coordinates">
-                {(field) => (
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                      Latitude
-                    </label>
-                    <Input
-                      type="number"
-                      step="any"
-                      value={field.state.value?.y ?? ""}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        if (isNaN(val)) {
-                          field.handleChange(null);
-                        } else {
-                          field.handleChange({
-                            x: field.state.value?.x ?? 0,
-                            y: val,
-                          });
-                        }
-                      }}
-                      placeholder="e.g. 4.6097"
-                      disabled={isPending}
-                      className="h-12 border-2 border-gray-300 text-base focus-visible:ring-[#fd5564]"
-                    />
-                  </div>
-                )}
-              </form.Field>
-              <form.Field name="coordinates">
-                {(field) => (
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                      Longitude
-                    </label>
-                    <Input
-                      type="number"
-                      step="any"
-                      value={field.state.value?.x ?? ""}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        if (isNaN(val)) {
-                          field.handleChange(null);
-                        } else {
-                          field.handleChange({
-                            x: val,
-                            y: field.state.value?.y ?? 0,
-                          });
-                        }
-                      }}
-                      placeholder="e.g. -74.0817"
-                      disabled={isPending}
-                      className="h-12 border-2 border-gray-300 text-base focus-visible:ring-[#fd5564]"
-                    />
-                  </div>
-                )}
-              </form.Field>
-            </div>
+            <form.Field name="coordinates">
+              {(field) => (
+                <div className="space-y-4">
+                  <MapPicker
+                    value={field.state.value}
+                    onChange={(coords) => field.handleChange(coords)}
+                    disabled={isPending}
+                  />
+                  {field.state.value && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700">
+                          Latitude
+                        </label>
+                        <Input
+                          type="number"
+                          step="any"
+                          value={field.state.value.y}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            if (!isNaN(val)) {
+                              field.handleChange({
+                                x: field.state.value?.x ?? 0,
+                                y: val,
+                              });
+                            }
+                          }}
+                          disabled={isPending}
+                          className="h-10 border-2 border-gray-300 text-sm focus-visible:ring-[#fd5564]"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700">
+                          Longitude
+                        </label>
+                        <Input
+                          type="number"
+                          step="any"
+                          value={field.state.value.x}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            if (!isNaN(val)) {
+                              field.handleChange({
+                                x: val,
+                                y: field.state.value?.y ?? 0,
+                              });
+                            }
+                          }}
+                          disabled={isPending}
+                          className="h-10 border-2 border-gray-300 text-sm focus-visible:ring-[#fd5564]"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </form.Field>
           </div>
 
           {/* Address Section */}
