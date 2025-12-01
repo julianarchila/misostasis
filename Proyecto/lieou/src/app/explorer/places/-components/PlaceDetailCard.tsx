@@ -14,14 +14,7 @@ type PlaceDetailCardProps = {
 };
 
 export function PlaceDetailCard({ place, isFavorite, onToggleFavorite }: PlaceDetailCardProps) {
-  // Modifica la lógica para priorizar mapsUrl si existe
-  const mapsHref = place.mapsUrl 
-    ? place.mapsUrl
-    : (place.location 
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.location)}`
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`
-      );
-  
+  // Modifica la lógica para priorizar mapsUrl si existe  
   const googleSearchLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`;
   const finalLink = place.mapsUrl ? place.mapsUrl : googleSearchLink;
   
