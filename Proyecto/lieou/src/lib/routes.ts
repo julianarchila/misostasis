@@ -14,6 +14,7 @@ export const routes = {
       list: "/business/places",
       new: "/business/places/new",
       detail: (id: string) => `/business/places/${id}` as const,
+      edit: (id: string) => `/business/places/${id}/edit` as const,
       preview: (id: string) => `/business/places/${id}/preview` as const,
     },
   },

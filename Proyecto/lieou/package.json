@@ -33,6 +33,7 @@
     "drizzle-orm": "^0.44.6",
     "effect": "^3.19.3",
     "effect-query": "^0.2.1",
+    "embla-carousel-react": "^8.6.0",
     "lucide-react": "^0.548.0",
     "next": "15.5.4",
     "next-themes": "^0.4.6",
