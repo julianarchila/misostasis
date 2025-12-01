@@ -13,7 +13,8 @@ export const PlaceHandlersLive = PlaceRpcs.toLayer(
       PlaceCreate: (payload) => placeService.create(payload),
       PlaceGetRecommended: () => placeService.getRecommended(),
       PlaceGetMyPlaces: () => placeService.getMyPlaces(),
-      PlaceGetById: (payload) => placeService.getById(payload.id)
+      PlaceGetById: (payload) => placeService.getById(payload.id),
+      PlaceDelete: (payload) => placeService.delete(payload.id)
     }
   })
 ).pipe(

@@ -126,6 +126,17 @@ export const getRecommendedOptions = eq.queryOptions({
     }),
 })
 
+/**
+ * Mutation options for deleting a place
+ */
+export const deletePlaceOptions = eq.mutationOptions({
+  mutationFn: (placeId: number) =>
+    Effect.gen(function* () {
+      const rpcClient = yield* MyRpcClient
+      return yield* rpcClient.PlaceDelete({ id: placeId })
+    }),
+})
+
 
 export class UploadError extends Data.TaggedError("UploadError")<{
   fileName: string

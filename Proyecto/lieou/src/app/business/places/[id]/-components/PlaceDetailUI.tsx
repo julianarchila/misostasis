@@ -4,6 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -17,6 +18,7 @@ import { ChevronLeft, Heart, MapPin, Pencil, Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Place } from "@/server/schemas/place";
 import { routes } from "@/lib/routes";
+import { deletePlaceOptions } from "@/data-access/places";
 
 interface PlaceDetailUIProps {
   place: Place;
@@ -24,9 +26,33 @@ interface PlaceDetailUIProps {
 
 export function PlaceDetailUI({ place }: PlaceDetailUIProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [api, setApi] = React.useState<CarouselApi>();
   const [current, setCurrent] = React.useState(0);
   const [count, setCount] = React.useState(0);
+
+  const deleteMutation = useMutation({
+    ...deletePlaceOptions,
+    onSuccess: () => {
+      // Invalidate the places list cache
+      queryClient.invalidateQueries({ queryKey: ["places", "my-places"] })
+      toast.success("Place deleted successfully")
+      router.push(routes.business.places.list)
+    },
+    onError: (error) => {
+      error.match({
+        Unauthenticated: () => {
+          toast.error("You must be logged in to delete this place")
+        },
+        PlaceNotFound: () => {
+          toast.error("This place doesn't exist or you don't have permission to delete it")
+        },
+        OrElse: () => {
+          toast.error("Failed to delete place. Please try again.")
+        },
+      })
+    },
+  })
 
   const images = place.images ?? [];
   const hasImages = images.length > 0;
@@ -48,11 +74,9 @@ export function PlaceDetailUI({ place }: PlaceDetailUIProps) {
     });
   }, [api]);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (confirm("Are you sure you want to delete this place? This cannot be undone.")) {
-      // Mock delete for now
-      toast.success("Place deleted");
-      router.push(routes.business.places.list);
+      deleteMutation.mutate(place.id)
     }
   };
 
@@ -189,12 +213,13 @@ export function PlaceDetailUI({ place }: PlaceDetailUIProps) {
             <h3 className="mb-2 text-center text-sm font-medium text-white/80">Danger Zone</h3>
             <Button
               onClick={handleDelete}
+              disabled={deleteMutation.isPending}
               variant="ghost"
               size="lg"
-              className="h-12 w-full rounded-full border-2 border-red-300 bg-white/10 text-white hover:bg-red-500 hover:text-white"
+              className="h-12 w-full rounded-full border-2 border-red-300 bg-white/10 text-white hover:bg-red-500 hover:text-white disabled:opacity-50"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete this place
+              {deleteMutation.isPending ? "Deleting..." : "Delete this place"}
             </Button>
           </div>
 

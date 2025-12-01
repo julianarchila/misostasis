@@ -84,6 +84,33 @@ export class PlaceService extends Effect.Service<PlaceService>()(
           const excludeBusinessId = dbUser ? dbUser.id : undefined
 
           return yield* placeRepo.findRecommended(excludeBusinessId)
+        }),
+
+        delete: (id: number) => Effect.gen(function*(){
+          const currentUser = yield* authRequired
+
+          // Get the database user ID from the Clerk user ID
+          const dbUser = yield* userRepo.findByClerkId(currentUser.user.id)
+          
+          if (!dbUser) {
+            return yield* Effect.fail(new Unauthenticated({ 
+              message: "User not found in database. Please complete onboarding first." 
+            }))
+          }
+
+          // Verify the place exists and belongs to the current user
+          const place = yield* placeRepo.findById(id)
+
+          if (!place) {
+            return yield* Effect.fail(new PlaceNotFound({ placeId: id }))
+          }
+
+          if (place.business_id !== dbUser.id) {
+            return yield* Effect.fail(new PlaceNotFound({ placeId: id }))
+          }
+
+          // Delete the place
+          yield* placeRepo.delete(id)
         })
       }
 

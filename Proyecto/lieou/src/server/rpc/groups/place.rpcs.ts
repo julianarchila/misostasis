@@ -27,5 +27,10 @@ export class PlaceRpcs extends RpcGroup.make(
     payload: Schema.Struct({ id: Schema.Number }),
     error: Schema.Union(Unauthenticated, PlaceNotFound),
     success: PlaceSchema
+  }),
+  Rpc.make("Delete", {
+    payload: Schema.Struct({ id: Schema.Number }),
+    error: Schema.Union(Unauthenticated, PlaceNotFound),
+    success: Schema.Void
   })
 ).prefix("Place").middleware(AuthMiddleware) { }
