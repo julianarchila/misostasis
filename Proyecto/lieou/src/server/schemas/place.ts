@@ -61,7 +61,7 @@ export const PlaceSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: PlaceDescriptionValidation,
   location: PlaceLocationValidation,
-  mapsUrl: PlaceMapsUrlValidation,
+  maps_url: PlaceMapsUrlValidation,
   created_at: NullableDate,
   images: Schema.optional(Schema.Array(PlaceImageSchema))
 })
@@ -105,7 +105,7 @@ export const CreatePlacePayloadSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: Schema.optional(PlaceDescriptionValidation),
   location: Schema.optional(PlaceLocationValidation),
-  mapsUrl: Schema.optional(Schema.NullOr(Schema.String)),
+  maps_url: Schema.optional(Schema.NullOr(Schema.String)),
   images: Schema.optional(Schema.Array(Schema.String))
 })
 

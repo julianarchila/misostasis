@@ -32,6 +32,7 @@ export default function ExplorerPage() {
       name: place.name,
       description: place.description || null,
       location: null,
+      maps_url: place.mapsUrl || null,
       images: [place.photoUrl],
     });
   };

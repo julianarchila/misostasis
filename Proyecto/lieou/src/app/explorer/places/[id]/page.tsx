@@ -24,7 +24,7 @@ export default function ExplorerPlaceDetailPage({ params }: { params: Promise<{ 
     photoUrl: serverPlace.images && serverPlace.images.length > 0 ? serverPlace.images[0].url : "/placeholder.png",
     category: "Other",
     description: serverPlace.description ?? "",
-    mapsUrl: serverPlace.mapsUrl
+    mapsUrl: serverPlace.maps_url
   };
 
   return <PlaceDetailCardContainer place={place} />;

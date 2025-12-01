@@ -21,6 +21,10 @@ export function PlaceDetailCard({ place, isFavorite, onToggleFavorite }: PlaceDe
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.location)}`
         : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`
       );
+  
+  const googleSearchLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`;
+  const finalLink = place.mapsUrl ? place.mapsUrl : googleSearchLink;
+  
   return (
     <div className="mx-auto w-full">
       <div className="relative h-[48svh] w-full bg-neutral-100">
@@ -52,8 +56,12 @@ export function PlaceDetailCard({ place, isFavorite, onToggleFavorite }: PlaceDe
             <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
             {isFavorite ? "Favorited" : "Add to favorites"}
           </Button>
-          <Button variant="outline" asChild>
-            <a href={mapsHref} target="_blank" rel="noopener noreferrer">
+         <Button variant="outline" asChild>
+            <a
+              href={finalLink}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
               <MapPin className="mr-2 h-4 w-4" />
               Open in Maps
             </a>

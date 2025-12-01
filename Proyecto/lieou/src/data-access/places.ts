@@ -78,7 +78,7 @@ export const createPlaceOptions = eq.mutationOptions({
       name: input.name,
       description: input.description,
       location: input.location,
-      mapsUrl: input.mapsUrl,
+      maps_url: input.maps_url,
       images: imageUrls.length > 0 ? imageUrls : undefined
     })
   })
@@ -117,6 +117,7 @@ export const getRecommendedOptions = eq.queryOptions({
         photoUrl: p.images && p.images.length > 0 ? p.images[0].url : "/placeholder.png",
         category: "Other",
         description: p.description ?? "",
+        mapsUrl: p.maps_url
       }))
 
       return mapped

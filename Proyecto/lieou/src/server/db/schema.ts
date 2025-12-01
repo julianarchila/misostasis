@@ -33,7 +33,7 @@ export const place = pgTable("place", {
   name: text("name").notNull(),
   description: text("description"),
   location: text("location"),
-  mapsUrl: text("maps_url"), 
+  maps_url: text("maps_url"), 
   created_at: timestamp("created_at").defaultNow(),
 });
 
