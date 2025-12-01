@@ -65,7 +65,9 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
           db.query.place.findFirst({
             where: eq(placeTable.id, id),
             with: { 
-              images: true,
+              images: {
+                orderBy: (images, { asc }) => [asc(images.order)]
+              },
               tags: {
                 with: {
                   tag: true
@@ -81,7 +83,9 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
           db.query.place.findMany({
             where: eq(placeTable.business_id, businessId),
             with: { 
-              images: true,
+              images: {
+                orderBy: (images, { asc }) => [asc(images.order)]
+              },
               tags: {
                 with: {
                   tag: true
@@ -93,7 +97,11 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
 
         findRecommended: (excludeBusinessId?: number) => DBQuery((db) =>
           db.query.place.findMany({
-            with: { images: true }
+            with: { 
+              images: {
+                orderBy: (images, { asc }) => [asc(images.order)]
+              }
+            }
           })
         ).pipe(
           Effect.map(res => {
@@ -103,16 +111,52 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
         ),
 
         update: (id: number, payload: UpdatePlacePayload) => DBQuery((db) =>
-          db
-            .update(placeTable)
-            .set(payload)
-            .where(eq(placeTable.id, id))
-            .returning()
-        ).pipe(
-          Effect.flatMap(EArray.head),
-          Effect.catchTags({
-            NoSuchElementException: () => Effect.die("Failed to update place"),
-          }),
+          db.transaction(async (tx) => {
+            const { images, ...placeData } = payload
+
+            // Update place data
+            const [updatedPlace] = await tx
+              .update(placeTable)
+              .set(placeData)
+              .where(eq(placeTable.id, id))
+              .returning()
+
+            if (!updatedPlace) throw new Error("Failed to update place")
+
+            // Handle images if provided
+            if (images !== undefined) {
+              // Delete existing images
+              await tx
+                .delete(placeImageTable)
+                .where(eq(placeImageTable.place_id, id))
+
+              // Insert new images if any
+              if (images.length > 0) {
+                await tx.insert(placeImageTable).values(
+                  images.map(url => ({ place_id: id, url }))
+                )
+              }
+            }
+
+            // Fetch complete place with images
+            const place = await tx.query.place.findFirst({
+              where: eq(placeTable.id, id),
+              with: { 
+                images: {
+                  orderBy: (images, { asc }) => [asc(images.order)]
+                },
+                tags: {
+                  with: {
+                    tag: true
+                  }
+                }
+              }
+            })
+
+            if (!place) throw new Error("Failed to fetch updated place")
+
+            return place
+          })
         ),
 
         delete: (id: number) => DBQuery((db) =>

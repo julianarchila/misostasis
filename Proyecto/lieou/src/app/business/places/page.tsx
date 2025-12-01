@@ -4,44 +4,24 @@ import { useQuery } from "@tanstack/react-query";
 import { getMyPlacesOptions } from "@/data-access/places";
 import { PlacesListUI } from "./-components/PlacesListUI";
 import { Card, CardContent } from "@/components/ui/card";
+import { PlacesStatsCards } from "../-components/PlacesStatsCards";
+import { BusinessPlaceList } from "./-components/PlacesList";
 
 export default function BusinessPlacesListPage() {
-  const query = useQuery(getMyPlacesOptions);
 
-  if (query.isPending) {
-    return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="h-40 w-full bg-neutral-100 animate-pulse" />
-              <div className="p-3 space-y-2">
-                <div className="h-4 bg-neutral-100 rounded animate-pulse w-3/4" />
-                <div className="h-3 bg-neutral-100 rounded animate-pulse w-1/2" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+  return (
+    <main className="px-6 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">My Places</h1>
+        <p className="mt-1 text-lg text-gray-600">Manage your venues and track performance</p>
       </div>
-    );
-  }
 
-  if (query.isError) {
-    return query.error.match({
-      Unauthenticated: () => (
-        <div className="text-center py-8">
-          <p className="text-red-500">You must be signed in to view your places</p>
-        </div>
-      ),
-      OrElse: (error) => (
-        <div className="text-center py-8">
-          <p className="text-red-500">Error loading places: {String(error)}</p>
-        </div>
-      ),
-    });
-  }
+      {/* Stats Cards */}
+      <PlacesStatsCards />
 
-  return <PlacesListUI places={query.data} />;
+      {/* Places Grid */}
+      <BusinessPlaceList />
+    </main>
+  )
 }
-
-

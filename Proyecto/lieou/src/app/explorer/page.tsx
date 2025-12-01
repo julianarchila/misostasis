@@ -1,49 +1,37 @@
+"use client"
 
-"use client";
-
-import * as React from "react";
-import { SwipeDeck } from "./-components/SwipeDeck";
-import { useRecommendedPlaces } from "@/hooks/useRecommendedPlaces";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createPlaceOptions, getMyPlacesOptions } from "@/data-access/places";
-import { type Place } from "@/lib/mockPlaces";
+import * as React from "react"
+import { SwipeDeck } from "./-components/SwipeDeck"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { getRecommendedPlacesOptions, getSavedPlacesOptions, swipeOptions } from "@/data-access/explorer"
+import type { Place } from "@/server/schemas/place"
 
 export default function ExplorerPage() {
-  const { data: places, isLoading, error } = useRecommendedPlaces();
-  const [, setSaved] = React.useState<Place[]>([]);
-  const queryClient = useQueryClient();
+  const { data: places, isLoading, error } = useQuery(getRecommendedPlacesOptions)
+  const queryClient = useQueryClient()
 
-  const { mutate: createPlace } = useMutation({
-    ...createPlaceOptions,
+  const { mutate: swipe } = useMutation({
+    ...swipeOptions,
     throwOnError: false,
-    onSuccess: () => {
-      // Invalidate my places so the saved list will refresh
-      queryClient.invalidateQueries({ queryKey: getMyPlacesOptions.queryKey });
+    onSuccess: (_, variables) => {
+      // Only invalidate saved places when swiping right
+      if (variables.direction === "right") {
+        queryClient.invalidateQueries({ queryKey: getSavedPlacesOptions.queryKey })
+      }
     },
-  });
+  })
 
   const handleSave = (place: Place) => {
-    // Optimistic local add (keeps existing behavior while mutation runs)
-    setSaved((prev) => (prev.find((p) => p.id === place.id) ? prev : [...prev, place]));
+    swipe({ place_id: place.id, direction: "right" })
+  }
 
-    // Persist as a new place for the current user by creating it
-    // We pass the photo URL as an image; description is optional
-    createPlace({
-      name: place.name,
-      description: place.description || null,
-      location: null,
-      maps_url: place.mapsUrl || null,
-      images: [place.photoUrl],
-    });
-  };
+  const handleDiscard = (place: Place) => {
+    swipe({ place_id: place.id, direction: "left" })
+  }
 
-  const handleDiscard = () => {
-    // no-op for mock; could track discards if desired
-  };
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>Error loading places</div>
+  if (!places || places.length === 0) return <div>No places available</div>
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading places</div>;
-  if (!places || places.length === 0) return <div>No places available</div>;
-
-  return <SwipeDeck places={places} onSave={handleSave} onDiscard={handleDiscard} />;
+  return <SwipeDeck places={places} onSave={handleSave} onDiscard={handleDiscard} />
 }

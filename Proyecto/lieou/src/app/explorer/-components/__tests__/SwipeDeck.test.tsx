@@ -2,82 +2,128 @@
  * @vitest-environment jsdom
  */
 
-import * as React from "react";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import { describe, expect, it, vi, afterEach } from "vitest";
+import * as React from "react"
+import { render, screen, fireEvent, cleanup } from "@testing-library/react"
+import { describe, expect, it, vi, afterEach, beforeAll } from "vitest"
 
-import { SwipeDeck } from "../SwipeDeck";
-import type { Place } from "@/lib/mockPlaces";
+import { SwipeDeck } from "../SwipeDeck"
+import type { Place } from "@/server/schemas/place"
+
+// Mock browser APIs for Embla Carousel
+beforeAll(() => {
+  // Mock matchMedia
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  })
+
+  // Mock IntersectionObserver
+  class MockIntersectionObserver {
+    observe = vi.fn()
+    unobserve = vi.fn()
+    disconnect = vi.fn()
+    root = null
+    rootMargin = ""
+    thresholds = []
+  }
+  Object.defineProperty(window, "IntersectionObserver", {
+    writable: true,
+    value: MockIntersectionObserver,
+  })
+
+  // Mock ResizeObserver
+  class MockResizeObserver {
+    observe = vi.fn()
+    unobserve = vi.fn()
+    disconnect = vi.fn()
+  }
+  Object.defineProperty(window, "ResizeObserver", {
+    writable: true,
+    value: MockResizeObserver,
+  })
+})
 
 const createPlaces = (): Place[] => [
   {
-    id: "1",
+    id: 1,
+    business_id: 1,
     name: "First Place",
-    photoUrl: "https://example.com/first.jpg",
-    category: "Restaurant",
     description: "First description",
+    location: "Location 1",
+    maps_url: null,
+    created_at: null,
+    images: [{ id: 1, place_id: 1, url: "https://example.com/first.jpg" }],
   },
   {
-    id: "2",
+    id: 2,
+    business_id: 1,
     name: "Second Place",
-    photoUrl: "https://example.com/second.jpg",
-    category: "Cafe",
     description: "Second description",
+    location: "Location 2",
+    maps_url: null,
+    created_at: null,
+    images: [{ id: 2, place_id: 2, url: "https://example.com/second.jpg" }],
   },
-];
+]
 
 afterEach(() => {
-  cleanup();
-});
+  cleanup()
+})
 
 describe("SwipeDeck", () => {
-  it("renders the first place and advances after saving with the button", async () => {
-    const places = createPlaces();
-    const onSave = vi.fn();
-    const onDiscard = vi.fn();
+  it("renders the first place and advances after liking with the button", async () => {
+    const places = createPlaces()
+    const onSave = vi.fn()
+    const onDiscard = vi.fn()
 
-    render(<SwipeDeck places={places} onSave={onSave} onDiscard={onDiscard} />);
+    render(<SwipeDeck places={places} onSave={onSave} onDiscard={onDiscard} />)
 
-    expect(screen.getAllByText(places[0].name)[0]).toBeDefined();
-    const saveButtton = screen.getAllByLabelText("Save");
-    expect(saveButtton[0]).toBeDefined()
-    fireEvent.click(saveButtton[0]);
+    expect(screen.getAllByText(places[0].name)[0]).toBeDefined()
+    const likeButton = screen.getAllByLabelText("Like")
+    expect(likeButton[0]).toBeDefined()
+    fireEvent.click(likeButton[0])
 
-    expect(onSave).toHaveBeenCalledTimes(1);
-    expect(onSave).toHaveBeenCalledWith(places[0]);
-    await screen.findAllByText(places[1].name);
-    expect(onDiscard).not.toHaveBeenCalled();
-  });
+    expect(onSave).toHaveBeenCalledTimes(1)
+    expect(onSave).toHaveBeenCalledWith(places[0])
+    await screen.findAllByText(places[1].name)
+    expect(onDiscard).not.toHaveBeenCalled()
+  })
 
-  it("renders the first place and advances after discarding with the button", async () => {
-    const places = createPlaces();
-    const onSave = vi.fn();
-    const onDiscard = vi.fn();
+  it("renders the first place and advances after passing with the button", async () => {
+    const places = createPlaces()
+    const onSave = vi.fn()
+    const onDiscard = vi.fn()
 
-    render(<SwipeDeck places={places} onSave={onSave} onDiscard={onDiscard} />);
+    render(<SwipeDeck places={places} onSave={onSave} onDiscard={onDiscard} />)
 
-    expect(screen.getAllByText(places[0].name)[0]).toBeDefined();
-    const discardButton = screen.getAllByLabelText("Discard");
-    expect(discardButton[0]).toBeDefined()
-    fireEvent.click(discardButton[0]);
+    expect(screen.getAllByText(places[0].name)[0]).toBeDefined()
+    const passButton = screen.getAllByLabelText("Pass")
+    expect(passButton[0]).toBeDefined()
+    fireEvent.click(passButton[0])
 
-    expect(onDiscard).toHaveBeenCalledTimes(1);
-    expect(onDiscard).toHaveBeenCalledWith(places[0]);
-    await screen.findAllByText(places[1].name);
-    expect(onSave).not.toHaveBeenCalled();
-  });
-
+    expect(onDiscard).toHaveBeenCalledTimes(1)
+    expect(onDiscard).toHaveBeenCalledWith(places[0])
+    await screen.findAllByText(places[1].name)
+    expect(onSave).not.toHaveBeenCalled()
+  })
 
   it("renders completion message immediately when places is empty", () => {
-    const onSave = vi.fn();
-    const onDiscard = vi.fn();
+    const onSave = vi.fn()
+    const onDiscard = vi.fn()
 
-    render(<SwipeDeck places={[]} onSave={onSave} onDiscard={onDiscard} />);
+    render(<SwipeDeck places={[]} onSave={onSave} onDiscard={onDiscard} />)
 
-    expect(screen.getAllByText("You're all caught up")[0]).toBeDefined();
-    expect(onSave).not.toHaveBeenCalled();
-    expect(onDiscard).not.toHaveBeenCalled();
-  });
-});
-
-
+    expect(screen.getAllByText("You've seen all places nearby!")[0]).toBeDefined()
+    expect(onSave).not.toHaveBeenCalled()
+    expect(onDiscard).not.toHaveBeenCalled()
+  })
+})

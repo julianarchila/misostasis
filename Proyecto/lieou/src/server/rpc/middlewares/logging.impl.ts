@@ -20,11 +20,11 @@ export const RpcLoggingMiddlewareLive: Layer.Layer<RpcLoggingMiddleware> = Layer
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         yield* Effect.logError(`[RPC] ✗ ${rpc._tag} x ${(error as any)?._tag ?? "internal error"} (${duration}ms)`)
       })),
-      Effect.tapDefect((error) => Effect.gen(function* () {
-
+      Effect.tapDefect((defect) => Effect.gen(function* () {
         const duration = Date.now() - startTime
+        console.error("[RPC] Defect:", defect)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        yield* Effect.logError(`[RPC] ✗ ${rpc._tag} x ${(error as any)?._tag ?? "internal error"} (${duration}ms)`)
+        yield* Effect.logError(`[RPC] ✗ ${rpc._tag} x ${(defect as any)?._tag ?? "defect"} (${duration}ms)`)
       })),
     )
 

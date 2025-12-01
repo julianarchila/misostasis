@@ -1,29 +1,28 @@
-"use client";
+"use client"
 
-import { SavedPlacesListContainer } from "./-components/SavedPlacesListContainer";
-import { useQuery } from "@tanstack/react-query";
-import { getMyPlacesOptions } from "@/data-access/places";
-import type { Place as UiPlace } from "@/lib/mockPlaces";
-import type { Place } from "@/server/schemas/place";
-
-
-type PlaceWithImages = Place & {
-  images?: { url: string }[];
-};
+import { SavedPlacesListContainer } from "./-components/SavedPlacesListContainer"
+import { useQuery } from "@tanstack/react-query"
+import { getSavedPlacesOptions } from "@/data-access/explorer"
 
 export default function ExplorerSavedPage() {
-  const { data } = useQuery(getMyPlacesOptions);
+  const { data: savedPlaces, isPending, isError, error } = useQuery(getSavedPlacesOptions)
 
-  const placesData = (data as PlaceWithImages[]) ?? [];
+  // Error state
+  if (isError) {
+    return (
+      <div className="px-4 py-6">
+        <div className="rounded-xl bg-red-50 p-4 text-center">
+          <p className="text-red-600 font-medium">Failed to load saved places</p>
+          <p className="text-red-500 text-sm mt-1">{String(error)}</p>
+        </div>
+      </div>
+    )
+  }
 
-  const savedPlaces: UiPlace[] = placesData.map((p) => ({
-    id: String(p.id),
-    name: p.name,
-    
-    photoUrl: p.images?.[0]?.url ?? "/placeholder.png",
-    category: "Other",
-    description: p.description ?? "",
-  }));
-
-  return <SavedPlacesListContainer places={savedPlaces} />;
+  return (
+    <SavedPlacesListContainer 
+      savedPlaces={savedPlaces ?? []} 
+      isLoading={isPending}
+    />
+  )
 }

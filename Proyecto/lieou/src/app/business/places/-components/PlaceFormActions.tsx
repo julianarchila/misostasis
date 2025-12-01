@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface PlaceFormActionsProps {
   onReset: () => void;
@@ -10,22 +11,20 @@ export function PlaceFormActions({
   isLoading = false,
 }: PlaceFormActionsProps) {
   return (
-    <div className="flex items-center justify-end gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onReset}
-        disabled={isLoading}
-      >
-        Reset
-      </Button>
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="bg-[#6c47ff] text-white"
-      >
-        {isLoading ? "Creating..." : "Create place"}
-      </Button>
-    </div>
+    <Button
+      type="submit"
+      disabled={isLoading}
+      size="lg"
+      className="h-14 w-full rounded-full bg-white text-lg font-bold text-[#fd5564] shadow-2xl hover:scale-[1.02] hover:bg-gray-50 hover:shadow-2xl disabled:hover:scale-100"
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          Creating your place...
+        </>
+      ) : (
+        "Create place"
+      )}
+    </Button>
   );
 }

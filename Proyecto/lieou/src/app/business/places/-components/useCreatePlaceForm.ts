@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { createPlaceOptions, getMyPlacesOptions } from "@/data-access/places";
 import { CreatePlaceFormSchema } from "@/server/schemas/place";
 import { Schema } from "effect";
+import { routes } from "@/lib/routes";
 
 export function useCreatePlaceForm() {
   const router = useRouter();
@@ -30,20 +31,20 @@ export function useCreatePlaceForm() {
       toast.success("Place created successfully!");
       // Invalidate the my places query to refetch the list
       queryClient.invalidateQueries({
-        queryKey: getMyPlacesOptions.queryKey
+        queryKey: getMyPlacesOptions.queryKey,
       });
-      router.push("/business/places");
+      router.push(routes.business.places.list);
     },
   });
 
   // Schema that allows files in the form state
   const FormValidator = CreatePlaceFormSchema.pipe(
-      Schema.omit("images"),
-      Schema.extend(
-        Schema.Struct({
-          files: Schema.mutable(Schema.Array(Schema.Any)),
-        })
-      )
+    Schema.omit("images"),
+    Schema.extend(
+      Schema.Struct({
+        files: Schema.mutable(Schema.Array(Schema.Any)),
+      })
+    )
   );
 
   const form = useForm({
@@ -65,7 +66,7 @@ export function useCreatePlaceForm() {
         location: value.location || null,
         maps_url: value.maps_url || null,
         tag: value.tag || null,
-        files: value.files
+        files: value.files,
       });
     },
   });

@@ -1,11 +1,9 @@
 import { eq, MyRpcClient } from "@/lib/effect-query";
 import { Data, Effect } from "effect";
-import type { CreatePlacePayload } from "@/server/schemas/place"
-import { type Place as UiPlace } from "@/lib/mockPlaces";
-import type { Place as ServerPlace } from "@/server/schemas/place";
+import type { CreatePlacePayload, Place } from "@/server/schemas/place";
 
 /**
- * Query options for fetching user's places
+ * Query options for fetching user's places (business users)
  */
 export const getMyPlacesOptions = eq.queryOptions({
   queryKey: ["places", "my-places"],
@@ -17,7 +15,7 @@ export const getMyPlacesOptions = eq.queryOptions({
 })
 
 /**
- * Query options for fetching a single place by ID
+ * Query options for fetching a single place by ID (business users)
  */
 export const getPlaceByIdOptions = (placeId: number) => eq.queryOptions({
   queryKey: ["places", placeId],
@@ -61,7 +59,7 @@ const uploadImage = Effect.fn("uploadImage")(function* (file: File) {
 
 
 /**
- * Mutation options for creating a new place
+ * Mutation options for creating a new place (business users)
  */
 export const createPlaceOptions = eq.mutationOptions({
   mutationFn: (input: CreatePlaceInput) => Effect.gen(function* () {
@@ -69,7 +67,7 @@ export const createPlaceOptions = eq.mutationOptions({
     let imageUrls: string[] = []
 
     if (input.images && input.images.length > 0) {
-      // Use provided image URLs directly (e.g., when saving a recommended place)
+      // Use provided image URLs directly
       imageUrls = input.images
     } else if (input.files && input.files.length > 0) {
       imageUrls = yield* Effect.forEach(input.files, uploadImage, { concurrency: "unbounded" })
@@ -86,43 +84,39 @@ export const createPlaceOptions = eq.mutationOptions({
   })
 })
 
+/**
+ * Mutation options for updating a place (business users)
+ */
+type UpdatePlaceInput = {
+  id: number
+  name?: string
+  description?: string | null
+  location?: string | null
+}
+
+export const updatePlaceOptions = eq.mutationOptions({
+  mutationFn: (input: UpdatePlaceInput) => Effect.gen(function* () {
+    const rpcClient = yield* MyRpcClient
+
+    return yield* rpcClient.PlaceUpdate({
+      id: input.id,
+      data: {
+        name: input.name,
+        description: input.description,
+        location: input.location,
+      }
+    })
+  })
+})
 
 /**
- * Query options for fetching recommended places (explorer)
- * Returns UI-friendly `Place[]` (ids as strings, photoUrl, category)
+ * Mutation options for deleting a place (business users)
  */
-export const getRecommendedOptions = eq.queryOptions({
-  queryKey: ["places", "recommended"],
-  queryFn: () =>
+export const deletePlaceOptions = eq.mutationOptions({
+  mutationFn: (placeId: number) =>
     Effect.gen(function* () {
       const rpcClient = yield* MyRpcClient
-
-      // Fetch recommended places and the user's own places so we can exclude
-      // any recommended items that the user already saved. We compare by image URL
-      // (the saved flow stores the recommended place's photoUrl as an image URL).
-      const recommended = yield* rpcClient.PlaceGetRecommended()
-      const myPlaces = yield* rpcClient.PlaceGetMyPlaces()
-
-      const myImageUrls = new Set<string>(
-        (myPlaces as ServerPlace[])
-          .flatMap((p) => (p.images && p.images.length > 0 ? p.images.map((i) => i.url) : []))
-      )
-
-      const filtered = (recommended as ServerPlace[]).filter((p) => {
-        const url = p.images && p.images.length > 0 ? p.images[0].url : "/placeholder.png"
-        return !myImageUrls.has(url)
-      })
-
-      const mapped: UiPlace[] = filtered.map((p) => ({
-        id: String(p.id),
-        name: p.name,
-        photoUrl: p.images && p.images.length > 0 ? p.images[0].url : "/placeholder.png",
-        category: "Other",
-        description: p.description ?? "",
-        mapsUrl: p.maps_url
-      }))
-
-      return mapped
+      return yield* rpcClient.PlaceDelete({ id: placeId })
     }),
 })
 

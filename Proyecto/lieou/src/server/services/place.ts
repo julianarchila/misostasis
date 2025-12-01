@@ -73,17 +73,60 @@ export class PlaceService extends Effect.Service<PlaceService>()(
           }
 
           return place
-        })
-        ,
+        }),
 
-        getRecommended: () => Effect.gen(function*(){
+        update: (id: number, payload: import("@/server/schemas/place").UpdatePlacePayload) => Effect.gen(function*(){
           const currentUser = yield* authRequired
 
-          // Try to resolve database user id; if not found we'll just return public places
+          // Get the database user ID from the Clerk user ID
           const dbUser = yield* userRepo.findByClerkId(currentUser.user.id)
-          const excludeBusinessId = dbUser ? dbUser.id : undefined
+          
+          if (!dbUser) {
+            return yield* Effect.fail(new Unauthenticated({ 
+              message: "User not found in database. Please complete onboarding first." 
+            }))
+          }
 
-          return yield* placeRepo.findRecommended(excludeBusinessId)
+          // Verify the place exists and belongs to the current user
+          const place = yield* placeRepo.findById(id)
+
+          if (!place) {
+            return yield* Effect.fail(new PlaceNotFound({ placeId: id }))
+          }
+
+          if (place.business_id !== dbUser.id) {
+            return yield* Effect.fail(new PlaceNotFound({ placeId: id }))
+          }
+
+          // Update the place
+          return yield* placeRepo.update(id, payload)
+        }),
+
+        delete: (id: number) => Effect.gen(function*(){
+          const currentUser = yield* authRequired
+
+          // Get the database user ID from the Clerk user ID
+          const dbUser = yield* userRepo.findByClerkId(currentUser.user.id)
+          
+          if (!dbUser) {
+            return yield* Effect.fail(new Unauthenticated({ 
+              message: "User not found in database. Please complete onboarding first." 
+            }))
+          }
+
+          // Verify the place exists and belongs to the current user
+          const place = yield* placeRepo.findById(id)
+
+          if (!place) {
+            return yield* Effect.fail(new PlaceNotFound({ placeId: id }))
+          }
+
+          if (place.business_id !== dbUser.id) {
+            return yield* Effect.fail(new PlaceNotFound({ placeId: id }))
+          }
+
+          // Delete the place
+          yield* placeRepo.delete(id)
         })
       }
 
