@@ -41,17 +41,10 @@ export function BusinessNav() {
       <div
         className={linkBase}
       >
-        <SignedOut>
-          <SignInButton mode="modal" >
-            <Button variant="outline" className="h-9 px-3 text-sm">Sign In</Button>
-          </SignInButton>
-          <SignUpButton mode="modal" >
-            <Button className="h-9 px-3 text-sm rounded-full bg-[#6c47ff] text-white">Sign Up</Button>
-          </SignUpButton>
-        </SignedOut>
         <SignedIn>
           <UserButton />
         </SignedIn>
+        <span className="text-xs font-medium">Profile</span>
 
       </div>
 
