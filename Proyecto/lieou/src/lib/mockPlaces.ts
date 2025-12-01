@@ -4,6 +4,7 @@ export type Place = {
   photoUrl: string
   category: "Restaurant" | "Park" | "Cafe" | "Museum" | "Bar" | "Other"
   description: string
+  mapsUrl?: string | null
 }
 
 export const mockPlaces: Place[] = [
