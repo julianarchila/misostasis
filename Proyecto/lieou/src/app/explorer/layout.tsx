@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { ExplorerHeader } from './-components/ExplorerHeader'
+import { ExplorerNav } from './-components/ExplorerNav'
 import { routes } from '@/lib/routes'
 
 export default async function ExplorerLayout({ children }: { children: React.ReactNode }) {
@@ -15,14 +15,11 @@ export default async function ExplorerLayout({ children }: { children: React.Rea
     redirect(routes.business.root)
   }
   return (
-    <main className="min-h-[100svh] bg-white">
-      <div className="mx-auto w-full max-w-md px-4 pb-6">
-        <ExplorerHeader />
-        <div className="pt-4">
-          {children}
-        </div>
-      </div>
-    </main>
+    <div className="flex h-screen flex-col bg-gray-50">
+      <main className="flex-1 overflow-auto">{children}</main>
+
+      <ExplorerNav />
+    </div>
   )
 }
 

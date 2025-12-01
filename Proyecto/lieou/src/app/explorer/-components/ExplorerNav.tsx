@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { routes, isRouteActive } from "@/lib/routes";
+import { Compass, Heart, Settings } from "lucide-react";
+import { SignedIn, UserButton } from "@clerk/nextjs";
 
 export function ExplorerNav() {
   const pathname = usePathname();
@@ -12,32 +14,43 @@ export function ExplorerNav() {
   const isPreferences = isRouteActive(pathname, routes.explorer.preferences);
 
   const linkBase =
-    "text-sm py-2 text-center rounded-md transition-colors hover:bg-neutral-100";
-  const active =
-    "bg-neutral-100 font-medium";
+    "flex flex-1 flex-col items-center gap-1 py-3 transition-colors text-gray-500";
+  const active = "text-[#fd5564]";
 
   return (
-    <div className="w-full">
-      <div className="grid w-full grid-cols-3 gap-2">
+    <nav className="border-t border-gray-200 bg-white shadow-lg">
+      <div className="mx-auto flex max-w-md">
         <Link
           href={routes.explorer.feed}
           className={cn(linkBase, isDiscover && active)}
         >
-          Discover
+          <Compass className="h-6 w-6" />
+          <span className="text-xs font-medium">Discover</span>
         </Link>
+
         <Link
           href={routes.explorer.saved}
           className={cn(linkBase, isSaved && active)}
         >
-          Saved
+          <Heart className="h-6 w-6" />
+          <span className="text-xs font-medium">Saved</span>
         </Link>
+
         <Link
           href={routes.explorer.preferences}
           className={cn(linkBase, isPreferences && active)}
         >
-          Preferences
+          <Settings className="h-6 w-6" />
+          <span className="text-xs font-medium">Preferences</span>
         </Link>
+
+        <div className={linkBase}>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+          <span className="text-xs font-medium">Profile</span>
+        </div>
       </div>
-    </div>
+    </nav>
   );
 }
