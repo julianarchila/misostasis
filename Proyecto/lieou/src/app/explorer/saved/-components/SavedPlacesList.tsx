@@ -29,7 +29,7 @@ export function SavedPlacesList({ places, favoritesById, onToggleFavorite }: Sav
       {places.map((p) => {
         const placeId = String(p.id)
         const isFavorite = !!favoritesById[placeId]
-        const photoUrl = p.images?.[0]?.url ?? "/placeholder.png"
+        const photoUrl = p.images?.[0]?.url ?? "/placeholder.svg"
         // Hardcode category for now
         const category = "Restaurant"
 
