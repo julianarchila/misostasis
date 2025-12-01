@@ -107,7 +107,7 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
         /**
          * Get recommended places for a user (excludes places they created and already swiped right on)
          */
-        findRecommendedForUser: (userId: number, excludeBusinessId?: number) =>
+        findRecommendedForUser: (userId: number) =>
           DBQuery(async (db) => {
             // Get place IDs the user already swiped right on
             const savedSwipes = await db.select({ place_id: swipeTable.place_id })
@@ -130,7 +130,6 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
             // Filter out saved places and optionally the user's own places
             return allPlaces.filter(p => {
               if (savedPlaceIds.has(p.id)) return false
-              if (excludeBusinessId && p.business_id === excludeBusinessId) return false
               return true
             }) as Place[]
           })

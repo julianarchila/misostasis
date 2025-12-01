@@ -93,7 +93,7 @@ export class ExplorerService extends Effect.Service<ExplorerService>()(
           }
 
           // Pass the user's id to exclude their own places if they happen to be a business too
-          return yield* swipeRepo.findRecommendedForUser(dbUser.id, dbUser.id)
+          return yield* swipeRepo.findRecommendedForUser(dbUser.id)
         }),
 
         /**
