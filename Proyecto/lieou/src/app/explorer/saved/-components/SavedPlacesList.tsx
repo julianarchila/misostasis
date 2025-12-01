@@ -1,7 +1,7 @@
 import Image from "next/image"
-import { Heart } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
+import { Heart, MapPin, ExternalLink } from "lucide-react"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { routes } from "@/lib/routes"
 import type { Place } from "@/server/schemas/place"
@@ -13,58 +13,95 @@ type SavedPlacesListProps = {
 }
 
 export function SavedPlacesList({ places, favoritesById, onToggleFavorite }: SavedPlacesListProps) {
-  if (places.length === 0) {
-    return (
-      <div className="py-16 text-center">
-        <div className="text-base font-medium">No saved places yet</div>
-        <div className="text-sm text-neutral-500 mt-1">
-          Swipe right on places to add them here.
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-3">
-      {places.map((p) => {
-        const placeId = String(p.id)
+    <div className="grid gap-4 sm:grid-cols-2">
+      {places.map((place) => {
+        const placeId = String(place.id)
         const isFavorite = !!favoritesById[placeId]
-        const photoUrl = p.images?.[0]?.url ?? "/placeholder.svg"
-        // Hardcode category for now
-        const category = "Restaurant"
+        const photoUrl = place.images?.[0]?.url ?? "/placeholder.svg"
+        
+        // Build Google Maps link
+        const googleSearchLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`
+        const mapsLink = place.maps_url ?? googleSearchLink
 
         return (
-          <Card key={p.id} className="overflow-hidden">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-3">
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
-                  <Image src={photoUrl} alt={p.name} fill className="object-cover" sizes="64px" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <div className="truncate font-medium">{p.name}</div>
-                    <Badge variant="secondary" className="bg-neutral-100 text-neutral-700">
-                      {category}
-                    </Badge>
+          <Card
+            key={place.id}
+            className="group overflow-hidden rounded-2xl border-0 bg-white shadow-sm transition-all hover:shadow-lg p-0"
+          >
+            {/* Image section */}
+            <div className="relative aspect-[16/10] overflow-hidden">
+              <Image
+                src={photoUrl}
+                alt={place.name}
+                fill
+                className="object-cover transition-transform group-hover:scale-105"
+                sizes="(max-width: 640px) 100vw, 50vw"
+              />
+              
+              {/* Favorite button overlay */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onToggleFavorite(placeId)}
+                className={`absolute right-3 top-3 h-9 w-9 rounded-full backdrop-blur-sm transition-all ${
+                  isFavorite 
+                    ? "bg-[#fd5564] hover:bg-[#fd5564]/90 text-white" 
+                    : "bg-white/80 hover:bg-white text-gray-600"
+                }`}
+                aria-pressed={isFavorite}
+                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              >
+                <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+              </Button>
+
+              {/* Gradient overlay for text readability */}
+              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 to-transparent" />
+              
+              {/* Title on image */}
+              <div className="absolute bottom-3 left-3 right-3">
+                <h3 className="text-lg font-bold text-white truncate">{place.name}</h3>
+                {place.location && (
+                  <div className="flex items-center gap-1 text-white/90 text-sm mt-0.5">
+                    <MapPin className="h-3.5 w-3.5" />
+                    <span className="truncate">{place.location}</span>
                   </div>
-                  <div className="text-xs text-neutral-500 truncate">{p.description}</div>
-                </div>
-                <div className="ml-auto flex items-center gap-2">
-                  <Button asChild variant="outline" className="h-8 px-2">
-                    <a href={routes.explorer.places.detail(placeId)}>Details</a>
-                  </Button>
-                  <Button
-                    variant={isFavorite ? "default" : "outline"}
-                    className={`h-8 w-8 p-0 ${isFavorite ? "bg-rose-500 hover:bg-rose-600 text-white" : ""}`}
-                    onClick={() => onToggleFavorite(placeId)}
-                    aria-pressed={isFavorite}
-                    aria-label={isFavorite ? "Unfavorite" : "Favorite"}
-                  >
-                    <Heart className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
-                  </Button>
-                </div>
+                )}
               </div>
-            </CardContent>
+            </div>
+
+            {/* Content section */}
+            <div className="p-4">
+              {/* Description */}
+              {place.description && (
+                <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+                  {place.description}
+                </p>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex gap-2">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="flex-1 rounded-full border-2 font-medium hover:border-[#fd5564] hover:text-[#fd5564]"
+                >
+                  <Link href={routes.explorer.places.detail(placeId)}>
+                    View Details
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full border-2 hover:border-[#fd5564] hover:text-[#fd5564]"
+                >
+                  <a href={mapsLink} target="_blank" rel="noreferrer noopener" aria-label="Open in Maps">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+            </div>
           </Card>
         )
       })}
