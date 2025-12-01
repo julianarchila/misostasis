@@ -39,11 +39,10 @@ export function PlacesListUI({ places }: PlacesListUIProps) {
               />
               <div className="absolute right-3 top-3">
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-bold ${
-                    "Active" === "Active"
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-500 text-white"
-                  }`}
+                  className={`rounded-full px-3 py-1 text-xs font-bold ${"Active" === "Active"
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-500 text-white"
+                    }`}
                 >
                   Active
                 </span>
@@ -77,8 +76,11 @@ export function PlacesListUI({ places }: PlacesListUIProps) {
                 <Button
                   variant="outline"
                   className="flex-1 rounded-full border-2 font-medium hover:border-[#fd5564] hover:text-[#fd5564] bg-transparent"
+                  asChild
                 >
-                  Edit
+                  <Link href={routes.business.places.edit(String(place.id))}>
+                    Edit
+                  </Link>
                 </Button>
                 <Button
                   variant="outline"
