@@ -33,6 +33,7 @@ export const place = pgTable("place", {
   name: text("name").notNull(),
   description: text("description"),
   location: text("location"),
+  mapsUrl: text("maps_url"), 
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -77,6 +78,7 @@ export const placeImageRelations = relations(place_image, ({ one }) => ({
 export const tagRelations = relations(tag, ({ many }) => ({
   placeTags: many(place_tag),
 }));
+
 export const placeTagRelations = relations(place_tag, ({ one }) => ({
   place: one(place, {
     fields: [place_tag.place_id],
