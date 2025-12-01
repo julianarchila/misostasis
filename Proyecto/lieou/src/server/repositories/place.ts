@@ -1,7 +1,12 @@
 import { Effect } from "effect"
 import * as EArray from "effect/Array"
 import { eq } from "drizzle-orm"
-import { place as placeTable, place_image as placeImageTable, place_tag as placeTagTable, tag as tagTable } from "@/server/db/schema"
+import { 
+  place as placeTable, 
+  place_image as placeImageTable, 
+  place_tag as placeTagTable, 
+  tag as tagTable 
+} from "@/server/db/schema"
 import { DB } from "@/server/db/service"
 import type {
   Place,
@@ -18,11 +23,31 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
       return {
         create: (payload: CreatePlacePayload & { business_id: number }) => DBQuery((db) =>
           db.transaction(async (tx) => {
-            const { images, ...placeData } = payload
+            
+            const { images, tag, ...placeData } = payload
+
             const [place] = await tx.insert(placeTable).values(placeData).returning()
 
             if (!place) throw new Error("Failed to create place")
 
+            if (tag) {
+              await tx.insert(tagTable)
+                .values({ name: tag })
+                .onConflictDoNothing({ target: tagTable.name });
+
+              const [tagRecord] = await tx.select()
+                .from(tagTable)
+                .where(eq(tagTable.name, tag));
+
+              if (tagRecord) {
+                await tx.insert(placeTagTable).values({
+                  place_id: place.id,
+                  tag_id: tagRecord.id
+                });
+              }
+            }
+
+            
             if (!images || images.length === 0) {
               return { ...place, images: [] }
             }
@@ -33,9 +58,9 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
 
             return { ...place, images: insertedImages }
           })
-        )
-        ,
+        ),
 
+        
         findById: (id: number) => DBQuery((db) =>
           db.query.place.findFirst({
             where: eq(placeTable.id, id),
@@ -107,5 +132,3 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
     accessors: true,
   }
 ) { }
-
-

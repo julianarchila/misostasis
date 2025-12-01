@@ -42,8 +42,6 @@ export function useCreatePlaceForm() {
       Schema.extend(
         Schema.Struct({
           files: Schema.mutable(Schema.Array(Schema.Any)),
-          maps_url: Schema.NullOr(Schema.String),
-          tag: Schema.NullOr(Schema.String),
         })
       )
   );
@@ -66,6 +64,7 @@ export function useCreatePlaceForm() {
         description: value.description || null,
         location: value.location || null,
         maps_url: value.maps_url || null,
+        tag: value.tag || null,
         files: value.files
       });
     },

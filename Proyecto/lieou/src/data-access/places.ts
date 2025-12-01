@@ -31,6 +31,7 @@ export const getPlaceByIdOptions = (placeId: number) => eq.queryOptions({
 type CreatePlaceInput = Omit<CreatePlacePayload, "images"> & {
   files?: File[]
   images?: string[]
+  tag?: string | null
 }
 
 
@@ -79,6 +80,7 @@ export const createPlaceOptions = eq.mutationOptions({
       description: input.description,
       location: input.location,
       maps_url: input.maps_url,
+      tag: input.tag,
       images: imageUrls.length > 0 ? imageUrls : undefined
     })
   })

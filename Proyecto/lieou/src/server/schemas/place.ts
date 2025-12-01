@@ -42,6 +42,14 @@ const PlaceLocationValidation = Schema.NullOr(
 
 const PlaceMapsUrlValidation = Schema.NullOr(Schema.String)
 
+const PlaceTagValidation = Schema.NullOr(
+  Schema.String.pipe(
+    Schema.minLength(1),
+    Schema.maxLength(50),
+    Schema.trimmed()
+  )
+)
+
 // ============================================================================
 // Entity Schemas
 // ============================================================================
@@ -79,6 +87,8 @@ export const CreatePlaceFormSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: PlaceDescriptionValidation,
   location: PlaceLocationValidation,
+  maps_url: PlaceMapsUrlValidation,
+  tag: PlaceTagValidation,
   images: Schema.optional(Schema.Array(Schema.String))
 })
 
@@ -106,6 +116,7 @@ export const CreatePlacePayloadSchema = Schema.Struct({
   description: Schema.optional(PlaceDescriptionValidation),
   location: Schema.optional(PlaceLocationValidation),
   maps_url: Schema.optional(Schema.NullOr(Schema.String)),
+  tag: Schema.optional(PlaceTagValidation),
   images: Schema.optional(Schema.Array(Schema.String))
 })
 
