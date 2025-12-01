@@ -9,7 +9,7 @@ import { EmptyState } from "./EmptyState"
 import type { Place } from "@/server/schemas/place"
 
 type SwipeDeckProps = {
-  places: Place[]
+  places: readonly Place[]
   onSave: (place: Place) => void
   onDiscard: (place: Place) => void
 }

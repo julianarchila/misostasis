@@ -73,17 +73,6 @@ export class PlaceService extends Effect.Service<PlaceService>()(
           }
 
           return place
-        })
-        ,
-
-        getRecommended: () => Effect.gen(function*(){
-          const currentUser = yield* authRequired
-
-          // Try to resolve database user id; if not found we'll just return public places
-          const dbUser = yield* userRepo.findByClerkId(currentUser.user.id)
-          const excludeBusinessId = dbUser ? dbUser.id : undefined
-
-          return yield* placeRepo.findRecommended(excludeBusinessId)
         }),
 
         update: (id: number, payload: import("@/server/schemas/place").UpdatePlacePayload) => Effect.gen(function*(){

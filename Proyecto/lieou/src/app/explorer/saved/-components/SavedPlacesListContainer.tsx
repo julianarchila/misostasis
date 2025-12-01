@@ -6,10 +6,10 @@ import { SavedPlacesHeader } from "./SavedPlacesHeader"
 import { useSavedPlacesFavorites } from "./useSavedPlacesFavorites"
 import { useRemoveSavedPlace } from "./useRemoveSavedPlace"
 import { Card, CardContent } from "@/components/ui/card"
-import type { Place } from "@/server/schemas/place"
+import type { SavedPlace } from "@/server/schemas/explorer"
 
 type SavedPlacesListContainerProps = {
-  places: readonly Place[]
+  savedPlaces: readonly SavedPlace[]
   isLoading?: boolean
 }
 
@@ -39,23 +39,23 @@ function SavedPlacesSkeleton() {
   )
 }
 
-export function SavedPlacesListContainer({ places, isLoading }: SavedPlacesListContainerProps) {
+export function SavedPlacesListContainer({ savedPlaces, isLoading }: SavedPlacesListContainerProps) {
   const { favoritesById, toggleFavorite } = useSavedPlacesFavorites()
   const { removePlace, isRemoving } = useRemoveSavedPlace()
 
   return (
     <div className="px-4 py-6 space-y-6">
       {/* Header - always show */}
-      <SavedPlacesHeader count={places.length} />
+      <SavedPlacesHeader count={savedPlaces.length} />
       
       {/* Content */}
       {isLoading ? (
         <SavedPlacesSkeleton />
-      ) : places.length === 0 ? (
+      ) : savedPlaces.length === 0 ? (
         <SavedEmptyState />
       ) : (
         <SavedPlacesList 
-          places={places} 
+          savedPlaces={savedPlaces} 
           favoritesById={favoritesById} 
           onToggleFavorite={toggleFavorite}
           onRemove={removePlace}

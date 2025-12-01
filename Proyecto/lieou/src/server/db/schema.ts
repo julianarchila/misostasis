@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, boolean, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const todo = pgTable("todo", {
@@ -54,11 +54,13 @@ export const place_tag = pgTable("place_tag", {
 
 export const swipe = pgTable("swipe", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-  user_id: integer("user_id").references(() => user.id),
-  place_id: integer("place_id").references(() => place.id),
-  direction: text("direction").notNull(),
+  user_id: integer("user_id").references(() => user.id).notNull(),
+  place_id: integer("place_id").references(() => place.id).notNull(),
+  direction: text("direction").notNull(), // "left" | "right"
   created_at: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  unique("swipe_user_place_unique").on(table.user_id, table.place_id)
+]);
 
 export const favorite = pgTable("favorite", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
@@ -91,5 +93,16 @@ export const placeTagRelations = relations(place_tag, ({ one }) => ({
   tag: one(tag, {
     fields: [place_tag.tag_id],
     references: [tag.id],
+  }),
+}));
+
+export const swipeRelations = relations(swipe, ({ one }) => ({
+  user: one(user, {
+    fields: [swipe.user_id],
+    references: [user.id],
+  }),
+  place: one(place, {
+    fields: [swipe.place_id],
+    references: [place.id],
   }),
 }));

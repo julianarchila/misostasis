@@ -4,18 +4,18 @@ import { Heart, MapPin, ExternalLink, Trash2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { routes } from "@/lib/routes"
-import type { Place } from "@/server/schemas/place"
+import type { SavedPlace } from "@/server/schemas/explorer"
 
 type SavedPlacesListProps = {
-  places: readonly Place[]
+  savedPlaces: readonly SavedPlace[]
   favoritesById: Record<string, boolean>
   onToggleFavorite: (id: string) => void
-  onRemove: (id: number) => void
+  onRemove: (placeId: number) => void
   isRemoving?: boolean
 }
 
 export function SavedPlacesList({ 
-  places, 
+  savedPlaces, 
   favoritesById, 
   onToggleFavorite, 
   onRemove,
@@ -23,7 +23,8 @@ export function SavedPlacesList({
 }: SavedPlacesListProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      {places.map((place) => {
+      {savedPlaces.map((savedPlace) => {
+        const place = savedPlace.place
         const placeId = String(place.id)
         const isFavorite = !!favoritesById[placeId]
         const photoUrl = place.images?.[0]?.url ?? "/placeholder.svg"
@@ -34,7 +35,7 @@ export function SavedPlacesList({
 
         return (
           <Card
-            key={place.id}
+            key={savedPlace.swipe_id}
             className="group overflow-hidden rounded-2xl border-0 bg-white shadow-sm transition-all hover:shadow-lg p-0"
           >
             {/* Image section */}

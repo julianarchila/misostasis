@@ -1,17 +1,18 @@
 "use client"
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { deletePlaceOptions, getMyPlacesOptions } from "@/data-access/places"
+import { unsavePlaceOptions, getSavedPlacesOptions, getRecommendedPlacesOptions } from "@/data-access/explorer"
 import { toast } from "sonner"
 
 export function useRemoveSavedPlace() {
   const queryClient = useQueryClient()
 
   const { mutate, isPending } = useMutation({
-    ...deletePlaceOptions,
+    ...unsavePlaceOptions,
     onSuccess: () => {
-      // Invalidate the saved places list
-      queryClient.invalidateQueries({ queryKey: getMyPlacesOptions.queryKey })
+      // Invalidate the saved places list and recommended places
+      queryClient.invalidateQueries({ queryKey: getSavedPlacesOptions.queryKey })
+      queryClient.invalidateQueries({ queryKey: getRecommendedPlacesOptions.queryKey })
       toast.success("Place removed from saved")
     },
     onError: (error) => {

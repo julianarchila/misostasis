@@ -5,7 +5,7 @@ import { CreatePlacePayloadSchema, PlaceSchema, UpdatePlacePayloadSchema } from 
 import { Unauthenticated, PlaceNotFound } from "@/server/schemas/error"
 
 /**
- * RPC group for place-related operations
+ * RPC group for place-related operations (business users)
  */
 export class PlaceRpcs extends RpcGroup.make(
   Rpc.make("Create", {
@@ -14,11 +14,6 @@ export class PlaceRpcs extends RpcGroup.make(
     success: PlaceSchema
   }),
   Rpc.make("GetMyPlaces", {
-    payload: Schema.Void,
-    error: Unauthenticated,
-    success: Schema.Array(PlaceSchema)
-  }),
-  Rpc.make("GetRecommended", {
     payload: Schema.Void,
     error: Unauthenticated,
     success: Schema.Array(PlaceSchema)

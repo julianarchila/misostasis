@@ -2,39 +2,31 @@
 
 import * as React from "react"
 import { SwipeDeck } from "./-components/SwipeDeck"
-import { useRecommendedPlaces } from "@/hooks/useRecommendedPlaces"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { createPlaceOptions, getMyPlacesOptions } from "@/data-access/places"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { getRecommendedPlacesOptions, getSavedPlacesOptions, swipeOptions } from "@/data-access/explorer"
 import type { Place } from "@/server/schemas/place"
 
 export default function ExplorerPage() {
-  const { data: places, isLoading, error } = useRecommendedPlaces()
+  const { data: places, isLoading, error } = useQuery(getRecommendedPlacesOptions)
   const queryClient = useQueryClient()
 
-  const { mutate: createPlace } = useMutation({
-    ...createPlaceOptions,
+  const { mutate: swipe } = useMutation({
+    ...swipeOptions,
     throwOnError: false,
-    onSuccess: () => {
-      // Invalidate my places so the saved list will refresh
-      queryClient.invalidateQueries({ queryKey: getMyPlacesOptions.queryKey })
+    onSuccess: (_, variables) => {
+      // Only invalidate saved places when swiping right
+      if (variables.direction === "right") {
+        queryClient.invalidateQueries({ queryKey: getSavedPlacesOptions.queryKey })
+      }
     },
   })
 
   const handleSave = (place: Place) => {
-    // Persist as a new place for the current user by creating it
-    const imageUrls = place.images?.map((img) => img.url) ?? []
-
-    createPlace({
-      name: place.name,
-      description: place.description,
-      location: place.location,
-      maps_url: place.maps_url,
-      images: imageUrls,
-    })
+    swipe({ place_id: place.id, direction: "right" })
   }
 
-  const handleDiscard = () => {
-    // no-op for now; could track discards if desired
+  const handleDiscard = (place: Place) => {
+    swipe({ place_id: place.id, direction: "left" })
   }
 
   if (isLoading) return <div>Loading...</div>

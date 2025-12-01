@@ -2,10 +2,10 @@
 
 import { SavedPlacesListContainer } from "./-components/SavedPlacesListContainer"
 import { useQuery } from "@tanstack/react-query"
-import { getMyPlacesOptions } from "@/data-access/places"
+import { getSavedPlacesOptions } from "@/data-access/explorer"
 
 export default function ExplorerSavedPage() {
-  const { data: places, isPending, isError, error } = useQuery(getMyPlacesOptions)
+  const { data: savedPlaces, isPending, isError, error } = useQuery(getSavedPlacesOptions)
 
   // Error state
   if (isError) {
@@ -21,7 +21,7 @@ export default function ExplorerSavedPage() {
 
   return (
     <SavedPlacesListContainer 
-      places={places ?? []} 
+      savedPlaces={savedPlaces ?? []} 
       isLoading={isPending}
     />
   )
