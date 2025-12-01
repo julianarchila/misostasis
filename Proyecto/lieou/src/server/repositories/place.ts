@@ -65,7 +65,9 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
           db.query.place.findFirst({
             where: eq(placeTable.id, id),
             with: { 
-              images: true,
+              images: {
+                orderBy: (images, { asc }) => [asc(images.order)]
+              },
               tags: {
                 with: {
                   tag: true
@@ -81,7 +83,9 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
           db.query.place.findMany({
             where: eq(placeTable.business_id, businessId),
             with: { 
-              images: true,
+              images: {
+                orderBy: (images, { asc }) => [asc(images.order)]
+              },
               tags: {
                 with: {
                   tag: true
@@ -93,7 +97,11 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
 
         findRecommended: (excludeBusinessId?: number) => DBQuery((db) =>
           db.query.place.findMany({
-            with: { images: true }
+            with: { 
+              images: {
+                orderBy: (images, { asc }) => [asc(images.order)]
+              }
+            }
           })
         ).pipe(
           Effect.map(res => {
@@ -134,7 +142,9 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
             const place = await tx.query.place.findFirst({
               where: eq(placeTable.id, id),
               with: { 
-                images: true,
+                images: {
+                  orderBy: (images, { asc }) => [asc(images.order)]
+                },
                 tags: {
                   with: {
                     tag: true
