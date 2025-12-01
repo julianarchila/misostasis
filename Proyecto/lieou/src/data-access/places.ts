@@ -1,8 +1,6 @@
 import { eq, MyRpcClient } from "@/lib/effect-query";
 import { Data, Effect } from "effect";
-import type { CreatePlacePayload } from "@/server/schemas/place"
-import { type Place as UiPlace } from "@/lib/mockPlaces";
-import type { Place as ServerPlace } from "@/server/schemas/place";
+import type { CreatePlacePayload, Place } from "@/server/schemas/place";
 
 /**
  * Query options for fetching user's places
@@ -89,7 +87,7 @@ export const createPlaceOptions = eq.mutationOptions({
 
 /**
  * Query options for fetching recommended places (explorer)
- * Returns UI-friendly `Place[]` (ids as strings, photoUrl, category)
+ * Returns server Place[] directly, filtering out places the user already saved
  */
 export const getRecommendedOptions = eq.queryOptions({
   queryKey: ["places", "recommended"],
@@ -104,25 +102,16 @@ export const getRecommendedOptions = eq.queryOptions({
       const myPlaces = yield* rpcClient.PlaceGetMyPlaces()
 
       const myImageUrls = new Set<string>(
-        (myPlaces as ServerPlace[])
+        (myPlaces as Place[])
           .flatMap((p) => (p.images && p.images.length > 0 ? p.images.map((i) => i.url) : []))
       )
 
-      const filtered = (recommended as ServerPlace[]).filter((p) => {
-        const url = p.images && p.images.length > 0 ? p.images[0].url : "/placeholder.png"
+      const filtered = (recommended as Place[]).filter((p) => {
+        const url = p.images && p.images.length > 0 ? p.images[0].url : "/placeholder.svg"
         return !myImageUrls.has(url)
       })
 
-      const mapped: UiPlace[] = filtered.map((p) => ({
-        id: String(p.id),
-        name: p.name,
-        photoUrl: p.images && p.images.length > 0 ? p.images[0].url : "/placeholder.png",
-        category: "Other",
-        description: p.description ?? "",
-        mapsUrl: p.maps_url
-      }))
-
-      return mapped
+      return filtered
     }),
 })
 

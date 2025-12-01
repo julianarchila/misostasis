@@ -1,15 +1,15 @@
-"use client";
+"use client"
 
-import { SavedPlacesList } from "./SavedPlacesList";
-import { useSavedPlacesFavorites } from "./useSavedPlacesFavorites";
-import type { Place } from "@/lib/mockPlaces";
+import { SavedPlacesList } from "./SavedPlacesList"
+import { useSavedPlacesFavorites } from "./useSavedPlacesFavorites"
+import type { Place } from "@/server/schemas/place"
 
 type SavedPlacesListContainerProps = {
-  places: Place[];
-};
+  places: readonly Place[]
+}
 
 export function SavedPlacesListContainer({ places }: SavedPlacesListContainerProps) {
-  const { favoritesById, toggleFavorite } = useSavedPlacesFavorites();
+  const { favoritesById, toggleFavorite } = useSavedPlacesFavorites()
 
   return (
     <SavedPlacesList 
@@ -17,5 +17,5 @@ export function SavedPlacesListContainer({ places }: SavedPlacesListContainerPro
       favoritesById={favoritesById} 
       onToggleFavorite={toggleFavorite} 
     />
-  );
+  )
 }
