@@ -10,16 +10,27 @@ interface ImagePreview {
   id: string;
 }
 
+export interface ExistingImage {
+  id: number;
+  url: string;
+}
+
 interface ImageUploadProps {
-  value: File[];
-  onChange: (files: File[]) => void;
+  /** New files to upload */
+  files: File[];
+  onFilesChange: (files: File[]) => void;
+  /** Existing images from the server */
+  existingImages?: ExistingImage[];
+  onRemoveExisting?: (id: number) => void;
   disabled?: boolean;
   maxImages?: number;
 }
 
 export function ImageUpload({
-  value,
-  onChange,
+  files,
+  onFilesChange,
+  existingImages = [],
+  onRemoveExisting,
   disabled,
   maxImages = 6,
 }: ImageUploadProps) {
@@ -28,16 +39,21 @@ export function ImageUpload({
   const [isDragging, setIsDragging] = useState(false);
   const [previews, setPreviews] = useState<ImagePreview[]>([]);
 
-  // Sync previews with value prop
+  // Calculate how many total images we have and how many more we can add
+  const totalImages = existingImages.length + previews.length;
+  const canAddMore = totalImages < maxImages;
+  const remainingSlots = maxImages - existingImages.length;
+
+  // Sync previews with files prop
   useEffect(() => {
-    // Clean up old previews that are no longer in value
-    const currentFiles = new Set(value);
+    // Clean up old previews that are no longer in files
+    const currentFiles = new Set(files);
     const toRevoke = previews.filter((p) => !currentFiles.has(p.file));
     toRevoke.forEach((p) => URL.revokeObjectURL(p.preview));
 
     // Create previews for new files
     const existingFiles = new Set(previews.map((p) => p.file));
-    const newFiles = value.filter((f) => !existingFiles.has(f));
+    const newFiles = files.filter((f) => !existingFiles.has(f));
     const newPreviews: ImagePreview[] = newFiles.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
@@ -54,14 +70,14 @@ export function ImageUpload({
       newPreviews.forEach((p) => URL.revokeObjectURL(p.preview));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }, [files]);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      const totalAllowed = maxImages - value.length;
+      const totalAllowed = remainingSlots - files.length;
       const filesToAdd = newFiles.slice(0, totalAllowed);
-      onChange([...value, ...filesToAdd]);
+      onFilesChange([...files, ...filesToAdd]);
     }
     // Reset input so same file can be selected again if deleted
     if (inputRef.current) {
@@ -76,14 +92,14 @@ export function ImageUpload({
     const preview = previews.find((p) => p.id === id);
     if (preview) {
       URL.revokeObjectURL(preview.preview);
-      const newFiles = value.filter((f) => f !== preview.file);
-      onChange(newFiles);
+      const newFiles = files.filter((f) => f !== preview.file);
+      onFilesChange(newFiles);
     }
   };
 
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
-    if (!disabled) {
+    if (!disabled && canAddMore) {
       setIsDragging(true);
     }
   };
@@ -96,20 +112,21 @@ export function ImageUpload({
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    if (disabled) return;
+    if (disabled || !canAddMore) return;
 
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const newFiles = Array.from(files).filter((f) =>
+    const droppedFiles = e.dataTransfer.files;
+    if (droppedFiles && droppedFiles.length > 0) {
+      const newFiles = Array.from(droppedFiles).filter((f) =>
         f.type.startsWith("image/")
       );
-      const totalAllowed = maxImages - value.length;
+      const totalAllowed = remainingSlots - files.length;
       const filesToAdd = newFiles.slice(0, totalAllowed);
-      onChange([...value, ...filesToAdd]);
+      onFilesChange([...files, ...filesToAdd]);
     }
   };
 
-  if (previews.length === 0) {
+  // No images at all - show empty upload state
+  if (existingImages.length === 0 && previews.length === 0) {
     return (
       <div
         onDragOver={handleDragOver}
@@ -151,40 +168,85 @@ export function ImageUpload({
     );
   }
 
+  // Has images - show grid with existing + new + add more button
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-3 gap-3">
-        {previews.map((image, index) => (
-          <div
-            key={image.id}
-            className={`group relative overflow-hidden rounded-xl ${
-              index === 0 ? "col-span-3 aspect-[4/3]" : "aspect-square"
-            }`}
-          >
-            <Image
-              src={image.preview}
-              alt={`Preview ${index + 1}`}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-            <button
-              type="button"
-              onClick={() => removeFile(image.id)}
-              disabled={disabled}
-              className="absolute right-2 top-2 rounded-full bg-white/95 p-2 shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
+        {/* Existing images from server */}
+        {existingImages.map((image, index) => {
+          const isFirst = index === 0;
+          const isOnlyImageSection = previews.length === 0;
+          return (
+            <div
+              key={`existing-${image.id}`}
+              className={`group relative overflow-hidden rounded-xl ${
+                isFirst && (existingImages.length > 1 || !isOnlyImageSection)
+                  ? "col-span-3 aspect-[4/3]"
+                  : "aspect-square"
+              }`}
             >
-              <X className="h-4 w-4 text-gray-700" />
-            </button>
-            {index === 0 && (
-              <div className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-gray-900">
-                Main photo
-              </div>
-            )}
-          </div>
-        ))}
+              <Image
+                src={image.url}
+                alt={`Photo ${index + 1}`}
+                fill
+                className="object-cover"
+              />
+              {onRemoveExisting && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveExisting(image.id)}
+                  disabled={disabled}
+                  className="absolute right-2 top-2 rounded-full bg-white/95 p-2 shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
+                >
+                  <X className="h-4 w-4 text-gray-700" />
+                </button>
+              )}
+              {isFirst && (
+                <div className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-gray-900">
+                  Main photo
+                </div>
+              )}
+            </div>
+          );
+        })}
 
-        {previews.length < maxImages && (
+        {/* New file previews */}
+        {previews.map((image, index) => {
+          const globalIndex = existingImages.length + index;
+          const isFirst = globalIndex === 0;
+          return (
+            <div
+              key={`new-${image.id}`}
+              className={`group relative overflow-hidden rounded-xl ${
+                isFirst ? "col-span-3 aspect-[4/3]" : "aspect-square"
+              }`}
+            >
+              <Image
+                src={image.preview}
+                alt={`Preview ${index + 1}`}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+              <button
+                type="button"
+                onClick={() => removeFile(image.id)}
+                disabled={disabled}
+                className="absolute right-2 top-2 rounded-full bg-white/95 p-2 shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
+              >
+                <X className="h-4 w-4 text-gray-700" />
+              </button>
+              {isFirst && (
+                <div className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-gray-900">
+                  Main photo
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Add more button */}
+        {canAddMore && (
           <label
             htmlFor="image-upload-more"
             className={`flex aspect-square flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-[#fd5564] hover:bg-red-50/50 ${

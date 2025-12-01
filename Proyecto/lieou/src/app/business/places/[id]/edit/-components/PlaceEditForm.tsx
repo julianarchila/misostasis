@@ -2,13 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useEditPlaceForm } from "./useEditPlaceForm";
 import { ImageUpload } from "../../../-components/ImageUpload";
-import { ChevronLeft, Eye, Pencil, MapPin, Loader2, X } from "lucide-react";
+import { GradientBackground } from "@/components/GradientBackground";
+import { ChevronLeft, Eye, Pencil, MapPin, Loader2 } from "lucide-react";
 import type { Place } from "@/server/schemas/place";
 import { routes } from "@/lib/routes";
 
@@ -28,14 +28,7 @@ export function PlaceEditForm({ place }: PlaceEditFormProps) {
   const existingImages = form.getFieldValue("existingImages");
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-[#fd5564] via-[#fe6f5d] to-[#ff8a5b] overflow-hidden pb-20">
-      {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -right-20 top-1/3 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-20 left-1/3 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-      </div>
-
+    <GradientBackground className="pb-20">
       <div className="relative mx-auto max-w-2xl px-6 py-6">
         {/* Header with back button and mode toggle */}
         <div className="mb-6 flex items-center justify-between">
@@ -63,63 +56,23 @@ export function PlaceEditForm({ place }: PlaceEditFormProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Existing Photos Section */}
-          {existingImages.length > 0 && (
-            <div className="rounded-3xl bg-white p-6 shadow-2xl">
-              <div className="mb-4">
-                <h2 className="text-xl font-bold text-gray-900">Current Photos</h2>
-                <p className="mt-1 text-sm text-gray-600">
-                  Remove photos you no longer want
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {existingImages.map((image, index) => (
-                  <div
-                    key={image.id}
-                    className={`group relative overflow-hidden rounded-xl ${
-                      index === 0 && existingImages.length > 1 ? "col-span-3 aspect-[4/3]" : "aspect-square"
-                    }`}
-                  >
-                    <Image
-                      src={image.url}
-                      alt={`Photo ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeExistingImage(image.id)}
-                      disabled={isPending}
-                      className="absolute right-2 top-2 rounded-full bg-white/95 p-2 shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
-                    >
-                      <X className="h-4 w-4 text-gray-700" />
-                    </button>
-                    {index === 0 && (
-                      <div className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-gray-900">
-                        Main photo
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Add New Photos Section */}
+          {/* Photos Section - Unified */}
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Add New Photos</h2>
+              <h2 className="text-xl font-bold text-gray-900">Photos</h2>
               <p className="mt-1 text-sm text-gray-600">
-                Upload additional photos for your place
+                Drag to reorder. First photo is the main image.
               </p>
             </div>
             <form.Field name="files">
               {(field) => (
                 <ImageUpload
-                  value={field.state.value}
-                  onChange={(files) => field.handleChange(files)}
+                  files={field.state.value}
+                  onFilesChange={(files) => field.handleChange(files)}
+                  existingImages={existingImages}
+                  onRemoveExisting={removeExistingImage}
                   disabled={isPending}
-                  maxImages={6 - existingImages.length}
+                  maxImages={6}
                 />
               )}
             </form.Field>
@@ -247,6 +200,6 @@ export function PlaceEditForm({ place }: PlaceEditFormProps) {
           </div>
         </form>
       </div>
-    </div>
+    </GradientBackground>
   );
 }

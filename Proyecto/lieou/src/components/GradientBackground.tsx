@@ -1,10 +1,13 @@
+import { cn } from "@/lib/utils"
+
 type GradientBackgroundProps = {
   children: React.ReactNode
+  className?: string
 }
 
-export function GradientBackground({ children }: GradientBackgroundProps) {
+export function GradientBackground({ children, className }: GradientBackgroundProps) {
   return (
-    <div className="relative h-full bg-gradient-to-br from-[#fd5564] via-[#fe6f5d] to-[#ff8a5b]">
+    <div className={cn("relative min-h-screen bg-gradient-to-br from-[#fd5564] via-[#fe6f5d] to-[#ff8a5b] overflow-hidden", className)}>
       {/* Gradient background effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />

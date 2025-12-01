@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getPlaceByIdOptions } from "@/data-access/places";
 import { PlaceEditForm } from "./-components/PlaceEditForm";
+import { GradientBackground } from "@/components/GradientBackground";
 
 export default function BusinessPlaceEditPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -17,12 +18,7 @@ export default function BusinessPlaceEditPage({ params }: { params: Promise<{ id
   // Handle loading state
   if (isLoading) {
     return (
-      <div className="relative min-h-screen bg-gradient-to-br from-[#fd5564] via-[#fe6f5d] to-[#ff8a5b] overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute -right-20 top-1/3 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute -bottom-20 left-1/3 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-        </div>
+      <GradientBackground>
         <div className="relative mx-auto max-w-2xl px-6 py-6">
           <div className="space-y-6">
             <div className="rounded-3xl bg-white p-6 shadow-2xl animate-pulse">
@@ -35,7 +31,7 @@ export default function BusinessPlaceEditPage({ params }: { params: Promise<{ id
             </div>
           </div>
         </div>
-      </div>
+      </GradientBackground>
     );
   }
 
@@ -60,12 +56,7 @@ export default function BusinessPlaceEditPage({ params }: { params: Promise<{ id
     });
 
     return (
-      <div className="relative min-h-screen bg-gradient-to-br from-[#fd5564] via-[#fe6f5d] to-[#ff8a5b] overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute -right-20 top-1/3 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute -bottom-20 left-1/3 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-        </div>
+      <GradientBackground>
         <div className="relative mx-auto max-w-2xl px-6 py-12">
           <div className="rounded-3xl bg-white p-8 shadow-2xl text-center">
             <div className="space-y-3">
@@ -77,7 +68,7 @@ export default function BusinessPlaceEditPage({ params }: { params: Promise<{ id
             </div>
           </div>
         </div>
-      </div>
+      </GradientBackground>
     );
   }
 

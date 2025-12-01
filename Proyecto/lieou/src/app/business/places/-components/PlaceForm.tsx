@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PlaceFormActions } from "./PlaceFormActions";
 import { useCreatePlaceForm } from "./useCreatePlaceForm";
 import { ImageUpload } from "./ImageUpload";
+import { GradientBackground } from "@/components/GradientBackground";
 import { Sparkles, MapPin, Link as LinkIcon, Tag } from "lucide-react";
 
 export function PlaceForm() {
@@ -16,14 +17,7 @@ export function PlaceForm() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-[#fd5564] via-[#fe6f5d] to-[#ff8a5b] overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -right-20 top-1/3 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-20 left-1/3 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-      </div>
-
+    <GradientBackground>
       <div className="relative mx-auto max-w-2xl px-6 py-12">
         {/* Header */}
         <div className="mb-8 text-center">
@@ -52,8 +46,8 @@ export function PlaceForm() {
             <form.Field name="files">
               {(field) => (
                 <ImageUpload
-                  value={field.state.value}
-                  onChange={(files) => field.handleChange(files)}
+                  files={field.state.value}
+                  onFilesChange={(files) => field.handleChange(files)}
                   disabled={isPending}
                   maxImages={6}
                 />
@@ -214,6 +208,6 @@ export function PlaceForm() {
           <PlaceFormActions onReset={() => form.reset()} isLoading={isPending} />
         </form>
       </div>
-    </div>
+    </GradientBackground>
   );
 }
