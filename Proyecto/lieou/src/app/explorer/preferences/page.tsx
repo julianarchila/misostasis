@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GradientBackground } from "@/components/GradientBackground";
 import { MapPicker, type Coordinates } from "@/components/MapPicker";
-import { MapPin, Locate, ArrowLeft } from "lucide-react";
+import { MapPin, Locate, ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { routes } from "@/lib/routes";
@@ -14,15 +14,36 @@ import {
   getLocationPreferenceOptions, 
   updateLocationPreferenceOptions 
 } from "@/data-access/explorer";
+import { reverseGeocodeOptions } from "@/data-access/places";
 
 export default function ExplorerPreferencesPage() {
   const queryClient = useQueryClient();
   const [coordinates, setCoordinates] = React.useState<Coordinates | null>(null);
+  const [address, setAddress] = React.useState<string | null>(null);
   const [radius, setRadius] = React.useState<string>("5");
   const [isLocating, setIsLocating] = React.useState(false);
 
   const { data: locationPref, isLoading } = useQuery(getLocationPreferenceOptions);
   
+  const { mutate: reverseGeocode, isPending: isGeocoding } = useMutation({
+    ...reverseGeocodeOptions,
+    onSuccess: (addr) => {
+      setAddress(addr);
+    },
+  });
+
+  const handleCoordinatesChange = React.useCallback(
+    (coords: Coordinates | null) => {
+      setCoordinates(coords);
+      if (coords) {
+        reverseGeocode(coords);
+      } else {
+        setAddress(null);
+      }
+    },
+    [reverseGeocode]
+  );
+
   const updateMutation = useMutation({
     ...updateLocationPreferenceOptions,
     throwOnError: false,
@@ -39,10 +60,11 @@ export default function ExplorerPreferencesPage() {
     if (locationPref) {
       if (locationPref.coordinates) {
         setCoordinates(locationPref.coordinates);
+        reverseGeocode(locationPref.coordinates);
       }
       setRadius(locationPref.search_radius_km.toString());
     }
-  }, [locationPref]);
+  }, [locationPref, reverseGeocode]);
 
   const handleGetCurrentLocation = () => {
     if (!("geolocation" in navigator)) {
@@ -53,10 +75,11 @@ export default function ExplorerPreferencesPage() {
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setCoordinates({
+        const coords = {
           x: position.coords.longitude,
           y: position.coords.latitude,
-        });
+        };
+        handleCoordinatesChange(coords);
         setIsLocating(false);
         toast.success("Location detected!");
       },
@@ -144,9 +167,23 @@ export default function ExplorerPreferencesPage() {
             
             <MapPicker
               value={coordinates}
-              onChange={setCoordinates}
+              onChange={handleCoordinatesChange}
               disabled={updateMutation.isPending}
             />
+
+            {/* Address display */}
+            {(coordinates || isGeocoding) && (
+              <div className="mt-4 flex items-center gap-3 rounded-xl bg-gray-50 p-4">
+                {isGeocoding ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                ) : (
+                  <MapPin className="h-5 w-5 text-gray-400" />
+                )}
+                <span className="text-sm text-gray-700">
+                  {isGeocoding ? "Fetching address..." : address || "Unknown location"}
+                </span>
+              </div>
+            )}
 
             {/* Current Location Button */}
             <Button
@@ -159,48 +196,6 @@ export default function ExplorerPreferencesPage() {
               <Locate className="mr-2 h-4 w-4" />
               {isLocating ? "Detecting location..." : "Use Current Location"}
             </Button>
-
-            {/* Coordinate inputs for fine-tuning */}
-            {coordinates && (
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Latitude
-                  </label>
-                  <Input
-                    type="number"
-                    step="any"
-                    value={coordinates.y}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      if (!isNaN(val)) {
-                        setCoordinates({ ...coordinates, y: val });
-                      }
-                    }}
-                    disabled={updateMutation.isPending}
-                    className="h-10 border-2 border-gray-300 text-sm focus-visible:ring-[#fd5564]"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
-                    Longitude
-                  </label>
-                  <Input
-                    type="number"
-                    step="any"
-                    value={coordinates.x}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      if (!isNaN(val)) {
-                        setCoordinates({ ...coordinates, x: val });
-                      }
-                    }}
-                    disabled={updateMutation.isPending}
-                    className="h-10 border-2 border-gray-300 text-sm focus-visible:ring-[#fd5564]"
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Search Radius */}

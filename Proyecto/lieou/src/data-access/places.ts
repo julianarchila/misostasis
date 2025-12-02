@@ -2,6 +2,21 @@ import { eq, MyRpcClient } from "@/lib/effect-query";
 import { Data, Effect } from "effect";
 import type { CreatePlacePayload, Coordinates } from "@/server/schemas/place";
 
+// ============================================================================
+// Geocoding
+// ============================================================================
+
+/**
+ * Mutation options for reverse geocoding coordinates to address
+ */
+export const reverseGeocodeOptions = eq.mutationOptions({
+  mutationFn: (coords: Coordinates) =>
+    Effect.gen(function* () {
+      const rpcClient = yield* MyRpcClient;
+      return yield* rpcClient.GeocodingReverseGeocode(coords);
+    }),
+});
+
 /**
  * Query options for fetching user's places (business users)
  */

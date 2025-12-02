@@ -6,11 +6,31 @@ import { PlaceFormActions } from "./PlaceFormActions";
 import { useCreatePlaceForm } from "./useCreatePlaceForm";
 import { ImageUploadPending } from "./ImageUpload";
 import { GradientBackground } from "@/components/GradientBackground";
-import { MapPicker } from "@/components/MapPicker";
-import { Sparkles, MapPin, Tag } from "lucide-react";
+import { MapPicker, type Coordinates } from "@/components/MapPicker";
+import { Sparkles, MapPin, Tag, Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { reverseGeocodeOptions } from "@/data-access/places";
+import { useCallback } from "react";
 
 export function PlaceForm() {
   const { form, isPending } = useCreatePlaceForm();
+  
+  const { mutate: reverseGeocode, isPending: isGeocoding } = useMutation({
+    ...reverseGeocodeOptions,
+    onSuccess: (address) => {
+      form.setFieldValue("address", address);
+    },
+  });
+
+  const handleCoordinatesChange = useCallback(
+    (coords: Coordinates | null, fieldOnChange: (coords: Coordinates | null) => void) => {
+      fieldOnChange(coords);
+      if (coords) {
+        reverseGeocode(coords);
+      }
+    },
+    [reverseGeocode]
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,61 +150,11 @@ export function PlaceForm() {
             </div>
             <form.Field name="coordinates">
               {(field) => (
-                <div className="space-y-4">
-                  <MapPicker
-                    value={field.state.value}
-                    onChange={(coords) => field.handleChange(coords)}
-                    disabled={isPending}
-                  />
-                  {field.state.value && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                          Latitude
-                        </label>
-                        <Input
-                          type="number"
-                          step="any"
-                          value={field.state.value.y}
-                          onBlur={field.handleBlur}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value);
-                            if (!isNaN(val)) {
-                              field.handleChange({
-                                x: field.state.value?.x ?? 0,
-                                y: val,
-                              });
-                            }
-                          }}
-                          disabled={isPending}
-                          className="h-10 border-2 border-gray-300 text-sm focus-visible:ring-[#fd5564]"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                          Longitude
-                        </label>
-                        <Input
-                          type="number"
-                          step="any"
-                          value={field.state.value.x}
-                          onBlur={field.handleBlur}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value);
-                            if (!isNaN(val)) {
-                              field.handleChange({
-                                x: val,
-                                y: field.state.value?.y ?? 0,
-                              });
-                            }
-                          }}
-                          disabled={isPending}
-                          className="h-10 border-2 border-gray-300 text-sm focus-visible:ring-[#fd5564]"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <MapPicker
+                  value={field.state.value}
+                  onChange={(coords) => handleCoordinatesChange(coords, field.handleChange)}
+                  disabled={isPending}
+                />
               )}
             </form.Field>
           </div>
@@ -194,21 +164,25 @@ export function PlaceForm() {
             <div className="mb-4">
               <h2 className="text-xl font-bold text-gray-900">Address</h2>
               <p className="mt-1 text-sm text-gray-600">
-                Human-readable address for display (Optional)
+                Auto-filled from map location, or enter manually
               </p>
             </div>
             <form.Field name="address">
               {(field) => (
                 <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  {isGeocoding ? (
+                    <Loader2 className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 animate-spin text-gray-400" />
+                  ) : (
+                    <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  )}
                   <Input
                     id="place-address"
                     name={field.name}
                     value={field.state.value ?? ""}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="123 Main St, City, State"
-                    disabled={isPending}
+                    placeholder={isGeocoding ? "Fetching address..." : "123 Main St, City, Country"}
+                    disabled={isPending || isGeocoding}
                     autoComplete="off"
                     className="h-12 border-2 border-gray-300 pl-12 text-base focus-visible:ring-[#fd5564]"
                   />

@@ -3,6 +3,7 @@ import { PlaceRpcs } from "./place.rpcs"
 import { StorageRpcs } from "./storage.rpcs"
 import { ImageRpcs } from "./image.rpcs"
 import { ExplorerRpcs } from "./explorer.rpcs"
+import { GeocodingRpcs } from "./geocoding.rpcs"
 import { RpcLoggingMiddleware } from "@/server/rpc/middlewares/logging"
 
 /**
@@ -13,7 +14,8 @@ export const AppRpcs = UserRpcs
   .merge(StorageRpcs)
   .merge(ImageRpcs)
   .merge(ExplorerRpcs)
+  .merge(GeocodingRpcs)
   .middleware(RpcLoggingMiddleware) 
 
 
-export { UserRpcs, PlaceRpcs, StorageRpcs, ImageRpcs, ExplorerRpcs }
+export { UserRpcs, PlaceRpcs, StorageRpcs, ImageRpcs, ExplorerRpcs, GeocodingRpcs }
