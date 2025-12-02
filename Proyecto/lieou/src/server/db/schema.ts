@@ -74,7 +74,9 @@ export const swipe = pgTable("swipe", {
   direction: text("direction").notNull(), // "left" | "right"
   created_at: timestamp("created_at").defaultNow(),
 }, (table) => [
-  unique("swipe_user_place_unique").on(table.user_id, table.place_id)
+  unique("swipe_user_place_unique").on(table.user_id, table.place_id),
+  // Index for efficient anti-join in recommendation queries
+  index("swipe_user_place_direction_idx").on(table.user_id, table.place_id, table.direction)
 ]);
 
 export const favorite = pgTable("favorite", {

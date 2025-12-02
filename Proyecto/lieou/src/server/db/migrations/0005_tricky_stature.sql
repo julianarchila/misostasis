@@ -1,0 +1,1 @@
+CREATE INDEX "swipe_user_place_direction_idx" ON "swipe" USING btree ("user_id","place_id","direction");
