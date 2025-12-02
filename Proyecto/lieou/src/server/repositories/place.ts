@@ -178,48 +178,6 @@ export class PlaceRepository extends Effect.Service<PlaceRepository>()(
           return placesResult.map(row => buildPlace(row, imagesByPlace[row.id] || []))
         }),
 
-        /**
-         * Find recommended places with images
-         * Uses raw SQL to properly extract PostGIS geometry coordinates
-         */
-        findRecommended: (excludeBusinessId?: number) => DBQuery(async (db) => {
-          const placesResult = await db
-            .select({
-              id: placeTable.id,
-              business_id: placeTable.business_id,
-              name: placeTable.name,
-              description: placeTable.description,
-              coord_x: sql<number | null>`ST_X(${placeTable.coordinates})`,
-              coord_y: sql<number | null>`ST_Y(${placeTable.coordinates})`,
-              address: placeTable.address,
-              created_at: placeTable.created_at,
-            })
-            .from(placeTable)
-
-          if (placesResult.length === 0) {
-            return []
-          }
-
-          const placeIds = placesResult.map(p => p.id)
-          const imagesResult = await db
-            .select()
-            .from(placeImageTable)
-            .where(inArray(placeImageTable.place_id, placeIds))
-            .orderBy(placeImageTable.order)
-
-          // Group images by place_id
-          const imagesByPlace = imagesResult.reduce((acc, img) => {
-            if (!acc[img.place_id]) acc[img.place_id] = []
-            acc[img.place_id].push({ id: img.id, place_id: img.place_id, url: img.url })
-            return acc
-          }, {} as Record<number, Array<{ id: number; place_id: number; url: string }>>)
-
-          const places = placesResult.map(row => buildPlace(row, imagesByPlace[row.id] || []))
-          
-          if (!excludeBusinessId) return places
-          return places.filter(p => p.business_id !== excludeBusinessId)
-        }),
-
         update: (id: number, payload: UpdatePlacePayload) => DBQuery((db) =>
           db.transaction(async (tx) => {
             const { images, coordinates, ...placeData } = payload

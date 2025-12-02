@@ -124,21 +124,6 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
           ),
 
         /**
-         * Get all place IDs the user has swiped right on
-         */
-        findSavedPlaceIdsByUserId: (userId: number) =>
-          DBQuery((db) =>
-            db.select({ place_id: swipeTable.place_id })
-              .from(swipeTable)
-              .where(and(
-                eq(swipeTable.user_id, userId),
-                eq(swipeTable.direction, "right")
-              ))
-          ).pipe(
-            Effect.map(rows => rows.map(r => r.place_id))
-          ),
-
-        /**
          * Remove a swipe (unsave a place)
          */
         delete: (userId: number, placeId: number) =>
