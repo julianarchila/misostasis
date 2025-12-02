@@ -6,10 +6,31 @@ import { PlaceFormActions } from "./PlaceFormActions";
 import { useCreatePlaceForm } from "./useCreatePlaceForm";
 import { ImageUploadPending } from "./ImageUpload";
 import { GradientBackground } from "@/components/GradientBackground";
-import { Sparkles, MapPin, Link as LinkIcon, Tag } from "lucide-react";
+import { MapPicker, type Coordinates } from "@/components/MapPicker";
+import { Sparkles, MapPin, Tag, Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { reverseGeocodeOptions } from "@/data-access/places";
+import { useCallback } from "react";
 
 export function PlaceForm() {
   const { form, isPending } = useCreatePlaceForm();
+  
+  const { mutate: reverseGeocode, isPending: isGeocoding } = useMutation({
+    ...reverseGeocodeOptions,
+    onSuccess: (address) => {
+      form.setFieldValue("address", address);
+    },
+  });
+
+  const handleCoordinatesChange = useCallback(
+    (coords: Coordinates | null, fieldOnChange: (coords: Coordinates | null) => void) => {
+      fieldOnChange(coords);
+      if (coords) {
+        reverseGeocode(coords);
+      }
+    },
+    [reverseGeocode]
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,55 +140,49 @@ export function PlaceForm() {
             </form.Field>
           </div>
 
-          {/* Location Section */}
+          {/* Coordinates Section */}
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
             <div className="mb-4">
               <h2 className="text-xl font-bold text-gray-900">Location</h2>
               <p className="mt-1 text-sm text-gray-600">
-                Where can people find you? (Optional)
+                Click on the map to set your place&apos;s location
               </p>
             </div>
-            <form.Field name="location">
+            <form.Field name="coordinates">
               {(field) => (
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    id="place-location"
-                    name={field.name}
-                    value={field.state.value ?? ""}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="123 Main St, City, State"
-                    disabled={isPending}
-                    autoComplete="off"
-                    className="h-12 border-2 border-gray-300 pl-12 text-base focus-visible:ring-[#fd5564]"
-                  />
-                </div>
+                <MapPicker
+                  value={field.state.value}
+                  onChange={(coords) => handleCoordinatesChange(coords, field.handleChange)}
+                  disabled={isPending}
+                />
               )}
             </form.Field>
           </div>
 
-          {/* Google Maps Link Section */}
+          {/* Address Section */}
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Google Maps</h2>
+              <h2 className="text-xl font-bold text-gray-900">Address</h2>
               <p className="mt-1 text-sm text-gray-600">
-                Paste the &quot;Share&quot; link from Google Maps (Optional)
+                Auto-filled from map location, or enter manually
               </p>
             </div>
-            <form.Field name="maps_url">
+            <form.Field name="address">
               {(field) => (
                 <div className="relative">
-                  <LinkIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  {isGeocoding ? (
+                    <Loader2 className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 animate-spin text-gray-400" />
+                  ) : (
+                    <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  )}
                   <Input
-                    id="place-maps"
-                    type="url"
+                    id="place-address"
                     name={field.name}
                     value={field.state.value ?? ""}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="https://maps.app.goo.gl/..."
-                    disabled={isPending}
+                    placeholder={isGeocoding ? "Fetching address..." : "123 Main St, City, Country"}
+                    disabled={isPending || isGeocoding}
                     autoComplete="off"
                     className="h-12 border-2 border-gray-300 pl-12 text-base focus-visible:ring-[#fd5564]"
                   />

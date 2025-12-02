@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,12 @@ import { Button } from "@/components/ui/button";
 import { useEditPlaceForm } from "./useEditPlaceForm";
 import { ImageUpload, ImageItem } from "../../../-components/ImageUpload";
 import { GradientBackground } from "@/components/GradientBackground";
+import { MapPicker, type Coordinates } from "@/components/MapPicker";
 import { ChevronLeft, Eye, Pencil, MapPin, Loader2 } from "lucide-react";
 import type { Place } from "@/server/schemas/place";
 import { routes } from "@/lib/routes";
+import { useMutation } from "@tanstack/react-query";
+import { reverseGeocodeOptions } from "@/data-access/places";
 
 interface PlaceEditFormProps {
   place: Place;
@@ -20,6 +23,23 @@ interface PlaceEditFormProps {
 export function PlaceEditForm({ place }: PlaceEditFormProps) {
   const router = useRouter();
   const { form, isPending } = useEditPlaceForm({ place });
+
+  const { mutate: reverseGeocode, isPending: isGeocoding } = useMutation({
+    ...reverseGeocodeOptions,
+    onSuccess: (address) => {
+      form.setFieldValue("address", address);
+    },
+  });
+
+  const handleCoordinatesChange = useCallback(
+    (coords: Coordinates | null, fieldOnChange: (coords: Coordinates | null) => void) => {
+      fieldOnChange(coords);
+      if (coords) {
+        reverseGeocode(coords);
+      }
+    },
+    [reverseGeocode]
+  );
 
   // Images are managed independently with their own state
   const [images, setImages] = useState<ImageItem[]>(
@@ -111,7 +131,7 @@ export function PlaceEditForm({ place }: PlaceEditFormProps) {
                       <p className="mt-2 text-sm text-red-600">
                         {typeof field.state.meta.errors[0] === "string"
                           ? field.state.meta.errors[0]
-                          : field.state.meta.errors[0]?.message}
+                          : (field.state.meta.errors[0] as { message?: string })?.message}
                       </p>
                     )}
                   </div>
@@ -145,26 +165,49 @@ export function PlaceEditForm({ place }: PlaceEditFormProps) {
             </form.Field>
           </div>
 
-          {/* Location Section */}
+          {/* Coordinates Section */}
           <div className="rounded-3xl bg-white p-6 shadow-2xl">
             <div className="mb-4">
               <h2 className="text-xl font-bold text-gray-900">Location</h2>
               <p className="mt-1 text-sm text-gray-600">
-                Where can people find you?
+                Click on the map to update your place&apos;s location
               </p>
             </div>
-            <form.Field name="location">
+            <form.Field name="coordinates">
+              {(field) => (
+                <MapPicker
+                  value={field.state.value}
+                  onChange={(coords) => handleCoordinatesChange(coords, field.handleChange)}
+                  disabled={isPending}
+                />
+              )}
+            </form.Field>
+          </div>
+
+          {/* Address Section */}
+          <div className="rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Address</h2>
+              <p className="mt-1 text-sm text-gray-600">
+                Auto-filled from map location, or enter manually
+              </p>
+            </div>
+            <form.Field name="address">
               {(field) => (
                 <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  {isGeocoding ? (
+                    <Loader2 className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 animate-spin text-gray-400" />
+                  ) : (
+                    <MapPin className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  )}
                   <Input
-                    id="place-location"
+                    id="place-address"
                     name={field.name}
                     value={field.state.value ?? ""}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="123 Main St, City, State"
-                    disabled={isPending}
+                    placeholder={isGeocoding ? "Fetching address..." : "123 Main St, City, Country"}
+                    disabled={isPending || isGeocoding}
                     autoComplete="off"
                     className="h-12 border-2 border-gray-300 pl-12 text-base focus-visible:ring-[#fd5564]"
                   />

@@ -1,10 +1,11 @@
 import { eq, MyRpcClient } from "@/lib/effect-query"
 import { Effect } from "effect"
 import type { SwipeDirection } from "@/server/schemas/explorer"
+import type { UpdateLocationPreferencePayload } from "@/server/schemas/user"
 
 /**
  * Query options for fetching recommended places for explorers
- * Returns places the user hasn't saved yet
+ * Returns places within user's configured radius with distance
  */
 export const getRecommendedPlacesOptions = eq.queryOptions({
   queryKey: ["explorer", "recommended"],
@@ -58,5 +59,28 @@ export const unsavePlaceOptions = eq.mutationOptions({
     Effect.gen(function* () {
       const rpcClient = yield* MyRpcClient
       return yield* rpcClient.ExplorerUnsavePlace({ place_id: placeId })
+    }),
+})
+
+/**
+ * Query options for fetching user's location preference
+ */
+export const getLocationPreferenceOptions = eq.queryOptions({
+  queryKey: ["explorer", "locationPreference"],
+  queryFn: () =>
+    Effect.gen(function* () {
+      const rpcClient = yield* MyRpcClient
+      return yield* rpcClient.ExplorerGetLocationPreference()
+    }),
+})
+
+/**
+ * Mutation options for updating user's location preference
+ */
+export const updateLocationPreferenceOptions = eq.mutationOptions({
+  mutationFn: (payload: UpdateLocationPreferencePayload) =>
+    Effect.gen(function* () {
+      const rpcClient = yield* MyRpcClient
+      return yield* rpcClient.ExplorerUpdateLocationPreference(payload)
     }),
 })

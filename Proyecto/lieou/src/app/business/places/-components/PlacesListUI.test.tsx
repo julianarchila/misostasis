@@ -27,8 +27,8 @@ describe("PlacesListUI", () => {
         business_id: 101,
         name: "Test Place",
         description: "A cool description",
-        location: "Bogotá",
-        maps_url: null,
+        coordinates: { x: -74.0721, y: 4.7110 },
+        address: "Bogotá",
         created_at: new Date(),
       },
       {
@@ -36,8 +36,8 @@ describe("PlacesListUI", () => {
         business_id: 101,
         name: "Another Place",
         description: null,
-        location: null,
-        maps_url: null,
+        coordinates: null,
+        address: null,
         created_at: new Date(),
       },
     ];
@@ -65,8 +65,8 @@ describe("PlacesListUI", () => {
         business_id: 101,
         name: "Place with Image",
         description: "Has an image",
-        location: "Bogotá",
-        maps_url: null,
+        coordinates: { x: -74.0721, y: 4.7110 },
+        address: "Bogotá",
         created_at: new Date(),
         images: [
           {
@@ -81,8 +81,8 @@ describe("PlacesListUI", () => {
         business_id: 101,
         name: "Place without Image",
         description: "No images",
-        location: null,
-        maps_url: null,
+        coordinates: null,
+        address: null,
         created_at: new Date(),
         images: [],
       },

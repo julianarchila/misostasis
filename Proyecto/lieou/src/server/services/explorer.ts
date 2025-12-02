@@ -5,6 +5,8 @@ import { PlaceRepository } from "@/server/repositories/place"
 import { explorerRequired } from "@/server/utils/roles"
 import { Unauthenticated, PlaceNotFound } from "@/server/schemas/error"
 import type { SwipePayload } from "@/server/schemas/explorer"
+import type { PlaceWithDistance } from "@/server/schemas/place"
+import type { UpdateLocationPreferencePayload, UserLocationPreference } from "@/server/schemas/user"
 
 export class ExplorerService extends Effect.Service<ExplorerService>()(
   "ExplorerService",
@@ -79,7 +81,8 @@ export class ExplorerService extends Effect.Service<ExplorerService>()(
 
         /**
          * Get recommended places for the current user
-         * Excludes places they've already saved and their own places (if they're also a business)
+         * Uses location-based filtering if user has set their location preferences
+         * Falls back to all recommendations without distance if no location set
          */
         getRecommended: () => Effect.gen(function* () {
           const session = yield* explorerRequired
@@ -92,8 +95,25 @@ export class ExplorerService extends Effect.Service<ExplorerService>()(
             }))
           }
 
-          // Pass the user's id to exclude their own places if they happen to be a business too
-          return yield* swipeRepo.findRecommendedForUser(dbUser.id)
+          // Get user's location preference
+          const locationPref = yield* userRepo.getLocationPreference(dbUser.id)
+
+          // If user has location set, use proximity-based recommendations
+          if (locationPref?.coordinates) {
+            const { x: lon, y: lat } = locationPref.coordinates
+            const radiusKm = locationPref.search_radius_km
+
+            return yield* swipeRepo.findRecommendedWithDistance(
+              dbUser.id,
+              lat,
+              lon,
+              radiusKm
+            )
+          }
+
+          // Fallback: return all recommendations without distance
+          const places = yield* swipeRepo.findRecommendedForUser(dbUser.id)
+          return places.map(p => ({ ...p, distance_km: null })) as PlaceWithDistance[]
         }),
 
         /**
@@ -109,7 +129,43 @@ export class ExplorerService extends Effect.Service<ExplorerService>()(
           }
 
           return place
-        })
+        }),
+
+        /**
+         * Get user's location preference
+         */
+        getLocationPreference: () => Effect.gen(function* () {
+          const session = yield* explorerRequired
+
+          const dbUser = yield* userRepo.findByClerkId(session.user.id)
+          
+          if (!dbUser) {
+            return yield* Effect.fail(new Unauthenticated({ 
+              message: "User not found in database. Please complete onboarding first." 
+            }))
+          }
+
+          const pref = yield* userRepo.getLocationPreference(dbUser.id)
+          return pref as UserLocationPreference | null
+        }),
+
+        /**
+         * Update user's location preference
+         */
+        updateLocationPreference: (payload: UpdateLocationPreferencePayload) =>
+          Effect.gen(function* () {
+            const session = yield* explorerRequired
+
+            const dbUser = yield* userRepo.findByClerkId(session.user.id)
+            
+            if (!dbUser) {
+              return yield* Effect.fail(new Unauthenticated({ 
+                message: "User not found in database. Please complete onboarding first." 
+              }))
+            }
+
+            return yield* userRepo.upsertLocationPreference(dbUser.id, payload)
+          })
       }
     }),
 

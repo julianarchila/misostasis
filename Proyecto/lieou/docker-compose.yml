@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.4-alpine
     container_name: lieou-postgres
     restart: unless-stopped
     environment:
@@ -13,6 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - lieou_pg_data:/var/lib/postgresql/data
+      - ./docker/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d lieou"]
       interval: 5s

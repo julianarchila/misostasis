@@ -54,7 +54,7 @@ export function PlacesListUI({ places }: PlacesListUIProps) {
               <h3 className="text-xl font-bold text-gray-900">{place.name}</h3>
               <div className="mt-1 flex items-center gap-1 text-sm text-gray-600">
                 <MapPin className="h-4 w-4" />
-                <span>{place.location}</span>
+                <span>{place.address || "No address"}</span>
               </div>
 
               {/* Stats */}

@@ -4,6 +4,7 @@ import { PlaceHandlersLive } from "./place.handler"
 import { StorageHandlersLive } from "./storage.handler"
 import { ImageHandlersLive } from "./image.handler"
 import { ExplorerHandlersLive } from "./explorer.handler"
+import { GeocodingHandlersLive } from "./geocoding.handler"
 
 /**
  * Combined handlers for all RPC groups
@@ -13,7 +14,8 @@ export const HandlersLive = Layer.mergeAll(
   PlaceHandlersLive,
   StorageHandlersLive,
   ImageHandlersLive,
-  ExplorerHandlersLive
+  ExplorerHandlersLive,
+  GeocodingHandlersLive
 )
 
-export { UserHandlersLive, PlaceHandlersLive, StorageHandlersLive, ImageHandlersLive, ExplorerHandlersLive }
+export { UserHandlersLive, PlaceHandlersLive, StorageHandlersLive, ImageHandlersLive, ExplorerHandlersLive, GeocodingHandlersLive }

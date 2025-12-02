@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 type FeedCardInfoProps = {
   name: string
   description: string | null
-  location: string | null
+  address: string | null
   distance?: string
   rating?: number
   category?: string
@@ -15,7 +15,7 @@ type FeedCardInfoProps = {
 export function FeedCardInfo({
   name,
   description,
-  location,
+  address,
   distance,
   rating,
   category,
@@ -55,10 +55,10 @@ export function FeedCardInfo({
         </p>
       )}
 
-      {location && (
+      {address && (
         <div className="mt-2 text-sm text-gray-500">
           <MapPin className="mr-1 inline h-4 w-4" />
-          {location}
+          {address}
         </div>
       )}
     </div>

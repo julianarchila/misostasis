@@ -29,9 +29,11 @@ export function SavedPlacesList({
         const isFavorite = !!favoritesById[placeId]
         const photoUrl = place.images?.[0]?.url ?? "/placeholder.svg"
         
-        // Build Google Maps link
-        const googleSearchLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`
-        const mapsLink = place.maps_url ?? googleSearchLink
+        // Build Google Maps link from coordinates or address
+        const mapsQuery = place.coordinates
+          ? `${place.coordinates.y},${place.coordinates.x}`
+          : place.address ?? place.name
+        const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`
 
         return (
           <Card
@@ -85,10 +87,10 @@ export function SavedPlacesList({
               {/* Title on image */}
               <div className="absolute bottom-3 left-3 right-3">
                 <h3 className="text-lg font-bold text-white truncate">{place.name}</h3>
-                {place.location && (
+                {place.address && (
                   <div className="flex items-center gap-1 text-white/90 text-sm mt-0.5">
                     <MapPin className="h-3.5 w-3.5" />
-                    <span className="truncate">{place.location}</span>
+                    <span className="truncate">{place.address}</span>
                   </div>
                 )}
               </div>

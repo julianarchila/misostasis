@@ -4,9 +4,24 @@ import { Schema } from "effect"
 // Primitives
 // ============================================================================
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const NullableString = Schema.NullOr(Schema.String)
 const NullableDate = Schema.NullOr(Schema.Date)
+
+// ============================================================================
+// Coordinates Schema (for PostGIS geometry)
+// ============================================================================
+
+/**
+ * Coordinates schema for PostGIS geometry (point mode: xy)
+ * x = longitude, y = latitude
+ */
+export const CoordinatesSchema = Schema.Struct({
+  x: Schema.Number, // longitude
+  y: Schema.Number, // latitude
+})
+
+export type Coordinates = Schema.Schema.Type<typeof CoordinatesSchema>
+
+const NullableCoordinates = Schema.NullOr(CoordinatesSchema)
 
 // ============================================================================
 // Shared Field Validations
@@ -31,16 +46,13 @@ const PlaceDescriptionValidation = Schema.NullOr(
 )
 
 /**
- * Place location validation - optional, max 200 characters when present
+ * Place address validation - optional human-readable address, max 200 characters
  */
-const PlaceLocationValidation = Schema.NullOr(
+const PlaceAddressValidation = Schema.NullOr(
   Schema.String.pipe(
-    Schema.maxLength(200, { message: () => "Location must be at most 200 characters" })
+    Schema.maxLength(200, { message: () => "Address must be at most 200 characters" })
   )
 )
-
-
-const PlaceMapsUrlValidation = Schema.NullOr(Schema.String)
 
 const PlaceTagValidation = Schema.NullOr(
   Schema.String.pipe(
@@ -68,10 +80,25 @@ export const PlaceSchema = Schema.Struct({
   business_id: Schema.Number,
   name: PlaceNameValidation,
   description: PlaceDescriptionValidation,
-  location: PlaceLocationValidation,
-  maps_url: PlaceMapsUrlValidation,
+  coordinates: NullableCoordinates,
+  address: PlaceAddressValidation,
   created_at: NullableDate,
   images: Schema.optional(Schema.Array(PlaceImageSchema))
+})
+
+/**
+ * Place with calculated distance (for proximity-based feed)
+ */
+export const PlaceWithDistanceSchema = Schema.Struct({
+  id: Schema.Number,
+  business_id: Schema.Number,
+  name: PlaceNameValidation,
+  description: PlaceDescriptionValidation,
+  coordinates: NullableCoordinates,
+  address: PlaceAddressValidation,
+  created_at: NullableDate,
+  images: Schema.optional(Schema.Array(PlaceImageSchema)),
+  distance_km: Schema.NullOr(Schema.Number)
 })
 
 // ============================================================================
@@ -86,8 +113,8 @@ export const PlaceSchema = Schema.Struct({
 export const CreatePlaceFormSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: PlaceDescriptionValidation,
-  location: PlaceLocationValidation,
-  maps_url: PlaceMapsUrlValidation,
+  coordinates: NullableCoordinates,
+  address: PlaceAddressValidation,
   tag: PlaceTagValidation,
   images: Schema.optional(Schema.Array(Schema.String))
 })
@@ -99,7 +126,8 @@ export const CreatePlaceFormSchema = Schema.Struct({
 export const UpdatePlaceFormSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: PlaceDescriptionValidation,
-  location: PlaceLocationValidation,
+  coordinates: NullableCoordinates,
+  address: PlaceAddressValidation,
   images: Schema.optional(Schema.Array(Schema.String))
 })
 
@@ -114,8 +142,8 @@ export const UpdatePlaceFormSchema = Schema.Struct({
 export const CreatePlacePayloadSchema = Schema.Struct({
   name: PlaceNameValidation,
   description: Schema.optional(PlaceDescriptionValidation),
-  location: Schema.optional(PlaceLocationValidation),
-  maps_url: Schema.optional(Schema.NullOr(Schema.String)),
+  coordinates: Schema.optional(NullableCoordinates),
+  address: Schema.optional(PlaceAddressValidation),
   tag: Schema.optional(PlaceTagValidation),
   images: Schema.optional(Schema.Array(Schema.String))
 })
@@ -127,7 +155,8 @@ export const CreatePlacePayloadSchema = Schema.Struct({
 export const UpdatePlacePayloadSchema = Schema.Struct({
   name: Schema.optional(PlaceNameValidation),
   description: Schema.optional(PlaceDescriptionValidation),
-  location: Schema.optional(PlaceLocationValidation),
+  coordinates: Schema.optional(NullableCoordinates),
+  address: Schema.optional(PlaceAddressValidation),
   images: Schema.optional(Schema.Array(Schema.String))
 })
 
@@ -136,9 +165,8 @@ export const UpdatePlacePayloadSchema = Schema.Struct({
 // ============================================================================
 
 export type Place = Schema.Schema.Type<typeof PlaceSchema>
+export type PlaceWithDistance = Schema.Schema.Type<typeof PlaceWithDistanceSchema>
 export type CreatePlaceFormValues = Schema.Schema.Type<typeof CreatePlaceFormSchema>
 export type CreatePlacePayload = Schema.Schema.Type<typeof CreatePlacePayloadSchema>
 export type UpdatePlaceFormValues = Schema.Schema.Type<typeof UpdatePlaceFormSchema>
 export type UpdatePlacePayload = Schema.Schema.Type<typeof UpdatePlacePayloadSchema>
-
-

@@ -12,7 +12,7 @@ type PlaceImage = {
 export type FeedCardPlace = {
   readonly name: string
   readonly description: string | null
-  readonly location: string | null
+  readonly address: string | null
   readonly images?: readonly PlaceImage[]
 }
 
@@ -20,7 +20,7 @@ type FeedCardProps = {
   place: FeedCardPlace
   /** Hardcoded for now - will come from API later */
   category?: string
-  /** Hardcoded for now - will come from API later */
+  /** Distance from user's location */
   distance?: string
   /** Hardcoded for now - will come from API later */
   rating?: number
@@ -31,7 +31,7 @@ type FeedCardProps = {
 export function FeedCard({
   place,
   category = "Restaurant",
-  distance = "0.5 mi",
+  distance,
   rating = 4.8,
   children,
 }: FeedCardProps) {
@@ -48,7 +48,7 @@ export function FeedCard({
       <FeedCardInfo
         name={place.name}
         description={place.description}
-        location={place.location}
+        address={place.address}
         distance={distance}
         rating={rating}
         category={category}

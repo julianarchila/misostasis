@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button"
 import { FeedCard } from "@/components/FeedCard"
 import { GradientBackground } from "@/components/GradientBackground"
 import { EmptyState } from "./EmptyState"
-import type { Place } from "@/server/schemas/place"
+import type { PlaceWithDistance } from "@/server/schemas/place"
 
 type SwipeDeckProps = {
-  places: readonly Place[]
-  onSave: (place: Place) => void
-  onDiscard: (place: Place) => void
+  places: readonly PlaceWithDistance[]
+  onSave: (place: PlaceWithDistance) => void
+  onDiscard: (place: PlaceWithDistance) => void
 }
 
 export function SwipeDeck({ places, onSave, onDiscard }: SwipeDeckProps) {
@@ -27,6 +27,15 @@ export function SwipeDeck({ places, onSave, onDiscard }: SwipeDeckProps) {
 
   const handleButton = (dir: "left" | "right") => () => completeSwipe(dir)
 
+  // Format distance for display
+  const formatDistance = (distanceKm: number | null | undefined): string | undefined => {
+    if (distanceKm === null || distanceKm === undefined) return undefined
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)} m`
+    }
+    return `${distanceKm.toFixed(1)} km`
+  }
+
   return (
     <GradientBackground>
       <div className="flex h-full items-center justify-center px-4 py-8">
@@ -35,11 +44,11 @@ export function SwipeDeck({ places, onSave, onDiscard }: SwipeDeckProps) {
             place={{
               name: active.name,
               description: active.description,
-              location: active.location,
+              address: active.address,
               images: active.images,
             }}
             category="Restaurant"
-            distance="0.5 mi"
+            distance={formatDistance(active.distance_km)}
             rating={4.8}
           >
             <Button

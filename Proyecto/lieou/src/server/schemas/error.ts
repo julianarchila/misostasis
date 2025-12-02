@@ -41,3 +41,10 @@ export class ImageNotFound extends Schema.TaggedError<ImageNotFound>()(
     imageId: Schema.Number
   }
 ) {}
+
+export class GeocodingError extends Schema.TaggedError<GeocodingError>()(
+  "GeocodingError",
+  {
+    message: Schema.String
+  }
+) {}
