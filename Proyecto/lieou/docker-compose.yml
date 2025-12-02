@@ -13,6 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - lieou_pg_data:/var/lib/postgresql/data
+      - ./docker/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d lieou"]
       interval: 5s
