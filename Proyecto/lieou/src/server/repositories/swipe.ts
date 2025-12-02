@@ -1,4 +1,4 @@
-import { Effect } from "effect"
+import { Effect, Array as Arr, pipe } from "effect"
 import { eq, and, sql, desc, isNull, isNotNull, asc } from "drizzle-orm"
 import { swipe as swipeTable, place as placeTable, place_image as placeImageTable } from "@/server/db/schema"
 import { DB } from "@/server/db/service"
@@ -7,29 +7,37 @@ import type { Place, PlaceWithDistance } from "@/server/schemas/place"
 
 type PlaceImage = { id: number; place_id: number; url: string }
 
+type RowWithImage = { place_id: number; image_id: number | null; image_url: string | null }
+
 /**
  * Aggregates flat JOIN rows into places with nested images array.
  * Used to transform the result of a place LEFT JOIN place_image query
  * into a structure where each place has an images[] array.
  * Preserves insertion order (first occurrence of each place_id).
  */
-function aggregatePlacesWithImages<T extends { place_id: number; image_id: number | null; image_url: string | null }>(
-  rows: T[]
-): Map<number, { row: T; images: PlaceImage[] }> {
-  return rows.reduce((acc, row) => {
-    if (!acc.has(row.place_id)) {
-      acc.set(row.place_id, { row, images: [] })
-    }
-    if (row.image_id !== null && row.image_url !== null) {
-      acc.get(row.place_id)!.images.push({
-        id: row.image_id,
-        place_id: row.place_id,
-        url: row.image_url
-      })
-    }
-    return acc
-  }, new Map<number, { row: T; images: PlaceImage[] }>())
-}
+const aggregatePlacesWithImages = <T extends RowWithImage>(
+  rows: ReadonlyArray<T>
+): ReadonlyArray<{ row: T; images: PlaceImage[] }> =>
+  pipe(
+    rows,
+    Arr.reduce(
+      new Map<number, { row: T; images: PlaceImage[] }>(),
+      (acc, row) => {
+        if (!acc.has(row.place_id)) {
+          acc.set(row.place_id, { row, images: [] })
+        }
+        if (row.image_id !== null && row.image_url !== null) {
+          acc.get(row.place_id)!.images.push({
+            id: row.image_id,
+            place_id: row.place_id,
+            url: row.image_url
+          })
+        }
+        return acc
+      }
+    ),
+    (map) => Array.from(map.values())
+  )
 
 export class SwipeRepository extends Effect.Service<SwipeRepository>()(
   "SwipeRepository",
@@ -68,11 +76,11 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
          * - LEFT JOIN place_image (to get images)
          * - sql operator for PostGIS coordinate extraction (ST_X, ST_Y)
          * 
-         * Results are aggregated in JS to nest images under each place.
+         * Results are aggregated in Effect-land to nest images under each place.
          */
         findSavedByUserId: (userId: number) =>
-          DBQuery(async (db) => {
-            const rows = await db
+          DBQuery((db) =>
+            db
               .select({
                 swipe_id: swipeTable.id,
                 saved_at: swipeTable.created_at,
@@ -95,11 +103,9 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
                 eq(swipeTable.direction, "right")
               ))
               .orderBy(desc(swipeTable.created_at), asc(placeImageTable.order))
-
-            // Aggregate rows into places with images
-            const placesMap = aggregatePlacesWithImages(rows)
-
-            return Array.from(placesMap.values()).map(({ row, images }) => ({
+          ).pipe(
+            Effect.map(aggregatePlacesWithImages),
+            Effect.map(Arr.map(({ row, images }) => ({
               swipe_id: row.swipe_id,
               saved_at: row.saved_at,
               place: {
@@ -114,8 +120,8 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
                 created_at: row.place_created_at,
                 images
               }
-            } satisfies SavedPlace))
-          }),
+            } satisfies SavedPlace)))
+          ),
 
         /**
          * Get all place IDs the user has swiped right on
@@ -156,11 +162,11 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
          * - sql operator for PostGIS coordinate extraction (ST_X, ST_Y)
          * 
          * Requires index on swipe(user_id, place_id, direction) for efficient anti-join.
-         * Results are aggregated in JS to nest images under each place.
+         * Results are aggregated in Effect-land to nest images under each place.
          */
         findRecommendedForUser: (userId: number) =>
-          DBQuery(async (db) => {
-            const rows = await db
+          DBQuery((db) =>
+            db
               .select({
                 place_id: placeTable.id,
                 business_id: placeTable.business_id,
@@ -185,15 +191,9 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
               .leftJoin(placeImageTable, eq(placeTable.id, placeImageTable.place_id))
               .where(isNull(swipeTable.id))
               .orderBy(placeTable.id, asc(placeImageTable.order))
-
-            if (rows.length === 0) {
-              return [] as Place[]
-            }
-
-            // Aggregate rows into places with images
-            const placesMap = aggregatePlacesWithImages(rows)
-
-            return Array.from(placesMap.values()).map(({ row, images }) => ({
+          ).pipe(
+            Effect.map(aggregatePlacesWithImages),
+            Effect.map(Arr.map(({ row, images }) => ({
               id: row.place_id,
               business_id: row.business_id,
               name: row.name,
@@ -204,8 +204,8 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
               address: row.address,
               created_at: row.created_at,
               images
-            } satisfies Place))
-          }),
+            } satisfies Place)))
+          ),
 
         /**
          * Get recommended places for a user with distance calculation.
@@ -222,19 +222,19 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
          * - GiST index on place.coordinates for efficient spatial queries
          * - Index on swipe(user_id, place_id, direction) for efficient anti-join
          * 
-         * Results are ordered by distance and aggregated in JS to nest images under each place.
+         * Results are ordered by distance and aggregated in Effect-land to nest images under each place.
          */
         findRecommendedWithDistance: (
           userId: number,
           userLat: number,
           userLon: number,
           radiusKm: number
-        ) =>
-          DBQuery(async (db) => {
-            const userPoint = sql`ST_SetSRID(ST_MakePoint(${userLon}, ${userLat}), 4326)::geography`
-            const distanceKm = sql<number>`ST_Distance(${placeTable.coordinates}::geography, ${userPoint}) / 1000`.as('distance_km')
+        ) => {
+          const userPoint = sql`ST_SetSRID(ST_MakePoint(${userLon}, ${userLat}), 4326)::geography`
+          const distanceKm = sql<number>`ST_Distance(${placeTable.coordinates}::geography, ${userPoint}) / 1000`.as('distance_km')
 
-            const rows = await db
+          return DBQuery((db) =>
+            db
               .select({
                 place_id: placeTable.id,
                 business_id: placeTable.business_id,
@@ -266,15 +266,9 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
                 )
               )
               .orderBy(distanceKm, asc(placeImageTable.order))
-
-            if (rows.length === 0) {
-              return [] as PlaceWithDistance[]
-            }
-
-            // Reuse the shared aggregation helper
-            const placesMap = aggregatePlacesWithImages(rows)
-
-            return Array.from(placesMap.values()).map(({ row, images }) => ({
+          ).pipe(
+            Effect.map(aggregatePlacesWithImages),
+            Effect.map(Arr.map(({ row, images }) => ({
               id: row.place_id,
               business_id: row.business_id,
               name: row.name,
@@ -286,8 +280,9 @@ export class SwipeRepository extends Effect.Service<SwipeRepository>()(
               created_at: row.created_at,
               images,
               distance_km: row.distance_km
-            } satisfies PlaceWithDistance))
-          })
+            } satisfies PlaceWithDistance)))
+          )
+        }
       }
     }),
     dependencies: [DB.Default],
